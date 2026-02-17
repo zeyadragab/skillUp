@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build:*)",
+      "Bash(npm install:*)",
+      "Bash(cmd.exe /c \"taskkill /PID 11436 /F\")",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(npm run dev:*)",
+      "Bash(taskkill:*)",
+      "Bash(del \"src\\scripts\\seedAll.js\")",
+      "Bash(del \"src\\scripts\\seedSkills.js\")",
+      "Bash(cmd.exe /c \"taskkill /PID 13032 /F\")",
+      "Bash(cmd.exe /c \"taskkill /F /PID 13032 2>&1\")",
+      "Bash(curl:*)",
+      "Bash(python:*)",
+      "Bash(node src/server.js:*)",
+      "Bash(npx tailwindcss:*)",
+      "Bash(npm run seed:*)",
+      "Bash(cmd.exe /c \"taskkill /PID 18476 /F\")",
+      "Bash(cmd.exe /c \"taskkill /F /PID 18476 2>&1\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
