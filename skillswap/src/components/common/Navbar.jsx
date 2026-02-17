@@ -288,7 +288,7 @@ const AdvancedNavbar = () => {
            {/* Logo */}
            <Link to={user ? "/home" : "/"} className="flex items-center group">
               <img 
-                src="/logo.svg" 
+                src="/skillup.png" 
                 alt="SkillUp Logo" 
                 className="h-12 w-auto transition-transform duration-500 group-hover:scale-105"
               />
@@ -449,12 +449,12 @@ const AdvancedNavbar = () => {
              >
                 <div className="flex items-center justify-between mb-12">
                    <img 
-                      src="/logo.svg" 
+                      src="/skillup.png" 
                       alt="SkillUp Logo" 
                       className="h-10 w-auto"
                     />
                    <button onClick={() => setMobileMenuOpen(false)} className="w-10 h-10 bg-bg-alt rounded-2xl flex items-center justify-center text-text-muted">
-                      <X className="w-5 h-5" />
+                      {/* <X className="w-5 h-5" /> */}
                    </button>
                 </div>
 
