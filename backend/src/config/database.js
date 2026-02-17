@@ -1,15 +1,20 @@
 import mongoose from 'mongoose';
 
+let isConnected = false;
+
 const connectDB = async () => {
+  if (isConnected) return;
+
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI, {
-      // useNewUrlParser and useUnifiedTopology are no longer needed in Mongoose 6+
+    const conn = await mongoose.connect(process.env.MONGODB_URI.trim(), {
+      serverSelectionTimeoutMS: 10000,
     });
 
+    isConnected = true;
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
     console.error(`❌ Error connecting to MongoDB: ${error.message}`);
-    process.exit(1);
+    throw error; // Let the request fail gracefully instead of killing the process
   }
 };
 
