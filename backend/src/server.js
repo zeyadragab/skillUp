@@ -27,9 +27,6 @@ import { startSessionReminderJob } from './jobs/sessionReminderJob.js';
 // Load env vars
 dotenv.config();
 
-// Connect to database
-connectDB();
-
 // Initialize express
 const app = express();
 const httpServer = createServer(app);
@@ -108,13 +105,24 @@ io.on('connection', (socket) => {
 // Make io accessible in req object
 app.set('io', io);
 
-// Health check route
+// Health check route (no DB needed)
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     success: true,
     message: 'SkillSwap API is running',
     timestamp: new Date().toISOString()
   });
+});
+
+// Connect to DB before all API routes
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error('DB connection failed:', err.message);
+    res.status(503).json({ success: false, message: 'Database unavailable' });
+  }
 });
 
 // API Routes
@@ -167,10 +175,12 @@ if (process.env.VERCEL !== '1') {
   });
 }
 
-// Handle unhandled promise rejections
+// Handle unhandled promise rejections (don't exit on Vercel)
 process.on('unhandledRejection', (err) => {
   console.error(`❌ Unhandled Rejection: ${err.message}`);
-  httpServer.close(() => process.exit(1));
+  if (process.env.VERCEL !== '1') {
+    httpServer.close(() => process.exit(1));
+  }
 });
 
 // Handle SIGTERM
