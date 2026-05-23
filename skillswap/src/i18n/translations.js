@@ -1,9 +1,9 @@
 export const translations = {
   en: {
     // Navbar
-    nav_discover: "Discover",
-    nav_guild: "Guild",
-    nav_ecosystem: "Ecosystem",
+    nav_discover: "Explore",
+    nav_guild: "Mentors",
+    nav_ecosystem: "Community",
     nav_signin: "Sign In",
     nav_onboard: "Onboard",
     nav_profile: "Profile",
@@ -19,9 +19,7 @@ export const translations = {
     drop_learning_channels: "Learning Channels",
     drop_active_nodes: "active nodes",
     drop_swap_infra: "Swap Infrastructure",
-    drop_browse_mentors: "Browse Mentors",
     drop_browse_mentors_desc: "Find experts for your next session",
-    drop_career_swaps: "Career Swaps",
     drop_career_swaps_desc: "Exchange professional expertise",
     drop_instant: "Instant Sessions",
     drop_instant_desc: "Available experts right now",
@@ -36,12 +34,13 @@ export const translations = {
     // Home Page
     home_welcome: "Welcome back",
     home_scholar: "Scholar",
-    home_journey: "Your journey at SkillUp is more than just learning—it's a decentralized exchange of wisdom. Today, you have",
+    home_journey:
+      "Your journey at SkillUp is more than just learning—it's a decentralized exchange of wisdom. Today, you have",
     home_recommended_sessions: "3 recommended sessions",
     home_that_align: "that align with your growth trajectory.",
     home_initiate_swap: "Initiate Swap",
     home_view_roadmap: "View Roadmap",
-    home_vault_balance: "Vault Balance",
+    home_vault_balance: "SystemBalance",
     home_active_goals: "Active Goals",
     home_global_rank: "Global Rank",
     home_network: "Network",
@@ -50,7 +49,8 @@ export const translations = {
     home_you_achieved: "You achieved",
     home_mastery: "Mastery",
     home_in_skills_month: "in 4 skills this month.",
-    home_teaching_influence: "Your teaching influence has grown by 24% compared to last cycle. You've helped 18 students unlock new potential.",
+    home_teaching_influence:
+      "Your teaching influence has grown by 24% compared to last cycle. You've helped 18 students unlock new potential.",
     home_earned_tokens: "+120 TK Earned",
     home_star_avg: "4.9 Star Avg",
     home_badges: "Badges",
@@ -61,7 +61,8 @@ export const translations = {
     home_phase_integration: "Phase 3: Integration",
     home_pro_level: "Pro Level",
     home_advanced_systems: "Advanced Systems Design",
-    home_scaling_knowledge: "Scaling knowledge ecosystems with modular design patterns and automated feedback loops.",
+    home_scaling_knowledge:
+      "Scaling knowledge ecosystems with modular design patterns and automated feedback loops.",
     home_remaining: "Remaining",
     home_with: "With",
     home_master_grid: "Master Grid",
@@ -72,7 +73,8 @@ export const translations = {
     home_bridge_skill: "Bridge this Skill",
     home_scale_influence: "Scale your Influence",
     home_ready_elevate: "Ready to Elevate the Network?",
-    home_successful_members: "The most successful members on SkillUp both teach and learn. Start your next session today and contribute to the collective wisdom.",
+    home_successful_members:
+      "The most successful members on SkillUp both teach and learn. Start your next session today and contribute to the collective wisdom.",
     home_find_mentor: "Find a Mentor",
     home_become_master: "Become a Master",
 
@@ -80,41 +82,55 @@ export const translations = {
     land_future_learning: "The Future of Learning",
     land_master_skill: "Master Any Skill",
     land_through_exchange: "Through Exchange",
-    land_connect_experts: "Connect with experts worldwide to trade knowledge. Teach what you love, learn what you've always wanted. No fees, just growth.",
+    land_connect_experts:
+      "Connect with experts worldwide to trade knowledge. Teach what you love, learn what you've always wanted. No fees, just growth.",
     land_join_community: "Join Community",
     land_see_action: "See it in action",
     land_learners: "5,000+ Learners",
     land_growing_daily: "Growing together daily",
     land_everything_needed: "Everything you need for",
     land_mastery: "mastery",
-    land_designed_learner: "Designed for the modern learner who values community and knowledge transition.",
+    land_designed_learner:
+      "Designed for the modern learner who values community and knowledge transition.",
     land_smart_matching: "Smart Matching",
-    land_smart_matching_desc: "Our AI finds the perfect mentor for your unique learning style and goals.",
+    land_smart_matching_desc:
+      "Our AI finds the perfect mentor for your unique learning style and goals.",
     land_active_community: "Active Community",
-    land_active_community_desc: "Join study groups, forums, and live events with passionate learners.",
+    land_active_community_desc:
+      "Join study groups, forums, and live events with passionate learners.",
     land_instant_booking: "Instant Booking",
-    land_instant_booking_desc: "Schedule video sessions with experts in just a few clicks.",
+    land_instant_booking_desc:
+      "Schedule video sessions with experts in just a few clicks.",
     land_trusted_network: "Trusted Network",
-    land_trusted_network_desc: "Every member is verified to ensure a safe and high-quality environment.",
+    land_trusted_network_desc:
+      "Every member is verified to ensure a safe and high-quality environment.",
     land_learn_anything: "Learn Anything",
-    land_learn_anything_desc: "From coding to cooking - find a teacher for any skill you imagine.",
+    land_learn_anything_desc:
+      "From coding to cooking - find a teacher for any skill you imagine.",
     land_track_growth: "Track Growth",
-    land_track_growth_desc: "Visualize your progress with detailed analytics and skill badges.",
+    land_track_growth_desc:
+      "Visualize your progress with detailed analytics and skill badges.",
     land_simple_steps: "Simple steps to",
     land_transformation: "transformation",
-    land_refined_process: "We've refined the process of peer-to-peer learning to be as seamless as possible.",
+    land_refined_process:
+      "We've refined the process of peer-to-peer learning to be as seamless as possible.",
     land_get_started_today: "Get started today",
     land_create_identity: "Create Your Identity",
-    land_create_identity_desc: "Build a profile that showcases your unique skills and what you're eager to learn.",
+    land_create_identity_desc:
+      "Build a profile that showcases your unique skills and what you're eager to learn.",
     land_list_skills: "List Your Skills",
-    land_list_skills_desc: "Tell the community what you can teach. Every skill is valuable to someone.",
+    land_list_skills_desc:
+      "Tell the community what you can teach. Every skill is valuable to someone.",
     land_connect_swap: "Connect & Swap",
-    land_connect_swap_desc: "Browse our marketplace and request a skill swap with your perfect match.",
+    land_connect_swap_desc:
+      "Browse our marketplace and request a skill swap with your perfect match.",
     land_grow_together: "Grow Together",
-    land_grow_together_desc: "Engage in live sessions, earn tokens, and unlock new levels of knowledge.",
+    land_grow_together_desc:
+      "Engage in live sessions, earn tokens, and unlock new levels of knowledge.",
     land_ready_redefine: "Ready to redefine",
     land_your_potential: "your potential?",
-    land_thousands_experts: "Join thousands of experts trading knowledge every day. Your next great skill is just a swap away.",
+    land_thousands_experts:
+      "Join thousands of experts trading knowledge every day. Your next great skill is just a swap away.",
     land_start_swapping: "Start Swapping Free",
     land_features: "Features",
     land_pricing: "Pricing",
@@ -132,7 +148,8 @@ export const translations = {
     prof_verified: "Verified",
     prof_elite_mentor: "Elite Mentor",
     prof_level: "Level",
-    prof_expert_learner: "Expert learner and contributor at SkillUp. Passionate about growth and mentorship.",
+    prof_expert_learner:
+      "Expert learner and contributor at SkillUp. Passionate about growth and mentorship.",
     prof_global_citizen: "Global Citizen",
     prof_english: "English",
     prof_member_since: "Member since 2024",
@@ -174,11 +191,12 @@ export const translations = {
     tokens_purchase_more: "Purchase More",
     tokens_earned: "Total Earned",
     tokens_spent: "Total Spent",
-    tokens_ledger_history: "Ledger history",
+    tokens_ledger_history: "r history",
     tokens_transaction_logs: "Detailed transaction logs",
-    tokens_syncing: "Syncing Ledger...",
+    tokens_syncing: "Syncing r...",
     tokens_no_activities: "No activities recorded",
-    tokens_complete_session: "Complete a session or top up your wallet to start your journey.",
+    tokens_complete_session:
+      "Complete a session or top up your wallet to start your journey.",
     tokens_view_receipt: "View Receipt",
     tokens_load_older: "Load Older Transactions",
 
@@ -198,10 +216,12 @@ export const translations = {
 
     // Courses Page
     course_explore: "Explore Skills & Courses",
-    course_discover: "Find teachers for any skill you want to learn — from code to music to languages.",
+    course_discover:
+      "Find teachers for any skill you want to learn — from code to music to languages.",
     course_discover_category: "Discover",
     course_skills_taught: "skills taught by expert teachers",
-    course_search_placeholder: "Search for any skill (e.g., React, Guitar, Spanish)...",
+    course_search_placeholder:
+      "Search for any skill (e.g., React, Guitar, Spanish)...",
     course_filters: "Filters",
     course_learning_path: "Learning Path",
     course_all_categories: "All Categories",
@@ -216,13 +236,15 @@ export const translations = {
     course_skills: "skills",
     course_in: "in",
     course_no_skills: "No skills found",
-    course_adjust_search: "Try adjusting your search or filters to find what you're looking for",
+    course_adjust_search:
+      "Try adjusting your search or filters to find what you're looking for",
     course_clear_filters: "Clear All Filters",
     course_teachers: "teachers",
     course_learning: "learning",
 
     // Footer
-    footer_desc: "Redefining educational success through peer-to-peer knowledge exchange. Join the global movement today.",
+    footer_desc:
+      "Redefining educational success through peer-to-peer knowledge exchange. Join the global movement today.",
     footer_platform: "Platform",
     footer_explore_skills: "Explore Skills",
     footer_browse_teachers: "Browse Teachers",
@@ -234,7 +256,8 @@ export const translations = {
     footer_safety_tips: "Safety Tips",
     footer_contact: "Contact Us",
     footer_journal: "Journal",
-    footer_journal_desc: "Get the latest insights on skill development and community stories.",
+    footer_journal_desc:
+      "Get the latest insights on skill development and community stories.",
     footer_email_placeholder: "Email address",
     footer_join: "Join",
     footer_copyright: "2025 Skillup Global. All rights reserved.",
@@ -323,7 +346,8 @@ export const translations = {
     skills_analyzing: "Analyzing Talents...",
     skills_add_to_teaching: "Add to Teaching",
     skills_add_to_learning: "Add to Learning",
-    skills_select_from_marketplace: "Select a skill from our global marketplace",
+    skills_select_from_marketplace:
+      "Select a skill from our global marketplace",
     skills_all_skills: "ALL SKILLS",
     skills_search_skills: "Search skills...",
     skills_beginner: "Beginner",
@@ -345,9 +369,11 @@ export const translations = {
     skills_skill_atlas: "Skill Atlas",
     skills_atlas_desc: "Explore the complete landscape of available knowledge",
     skills_master_directory: "Master Directory",
-    skills_directory_desc: "Filter through verified experts across 50+ categories",
+    skills_directory_desc:
+      "Filter through verified experts across 50+ categories",
     skills_neural_network: "Neural Network",
-    skills_neural_desc: "Direct peer-to-peer transmission for rapid wisdom swap",
+    skills_neural_desc:
+      "Direct peer-to-peer transmission for rapid wisdom swap",
     skills_wisdom_archive: "Wisdom Archive",
     skills_archive_desc: "Access high-definition recordings of your past swaps",
     skills_session_pulse: "Session Pulse",
@@ -384,7 +410,8 @@ export const translations = {
     mentor_reserve_slot: "Reserve Slot",
     mentor_learning_list: "Learning List",
     mentor_swap_wisdom: "Swap Wisdom?",
-    mentor_swap_desc: "If you are an expert in what {name} wants to learn, a direct swap might be possible.",
+    mentor_swap_desc:
+      "If you are an expert in what {name} wants to learn, a direct swap might be possible.",
     mentor_propose_swap: "Propose a Skill Swap",
     mentor_level: "Level",
 
@@ -446,7 +473,8 @@ export const translations = {
     // Home Page
     home_welcome: "أهلا بعودتك",
     home_scholar: "الطالب",
-    home_journey: "رحلتك في SkillUp هي أكثر من مجرد تعلم - إنها تبادل لامركزي للحكمة. اليوم لديك",
+    home_journey:
+      "رحلتك في SkillUp هي أكثر من مجرد تعلم - إنها تبادل لامركزي للحكمة. اليوم لديك",
     home_recommended_sessions: "3 جلسات موصى بها",
     home_that_align: "التي تتوافق مع مسار نموك.",
     home_initiate_swap: "بدء التبادل",
@@ -460,7 +488,8 @@ export const translations = {
     home_you_achieved: "لقد حققت",
     home_mastery: "إتقان",
     home_in_skills_month: "في 4 مهارات هذا الشهر.",
-    home_teaching_influence: "نمت تأثيرك التدريسي بنسبة 24% مقارنة بالدورة الأخيرة. لقد ساعدت 18 طالباً في فتح إمكانيات جديدة.",
+    home_teaching_influence:
+      "نمت تأثيرك التدريسي بنسبة 24% مقارنة بالدورة الأخيرة. لقد ساعدت 18 طالباً في فتح إمكانيات جديدة.",
     home_earned_tokens: "+120 TK حصل عليها",
     home_star_avg: "متوسط 4.9 نجمة",
     home_badges: "الشارات",
@@ -471,7 +500,8 @@ export const translations = {
     home_phase_integration: "المرحلة 3: التكامل",
     home_pro_level: "مستوى احترافي",
     home_advanced_systems: "تصميم الأنظمة المتقدمة",
-    home_scaling_knowledge: "تحجيم أنظمة المعرفة باستخدام أنماط التصميم المعيارية وحلقات التغذية الراجعة الآلية.",
+    home_scaling_knowledge:
+      "تحجيم أنظمة المعرفة باستخدام أنماط التصميم المعيارية وحلقات التغذية الراجعة الآلية.",
     home_remaining: "متبقي",
     home_with: "مع",
     home_master_grid: "شبكة الأساتذة",
@@ -482,7 +512,8 @@ export const translations = {
     home_bridge_skill: "ربط هذه المهارة",
     home_scale_influence: "توسيع نطاق تأثيرك",
     home_ready_elevate: "هل أنت مستعد لرفع مستوى الشبكة؟",
-    home_successful_members: "الأعضاء الناجحون على SkillUp يقومون بالتدريس والتعلم معاً. ابدأ جلستك التالية اليوم وساهم في الحكمة الجماعية.",
+    home_successful_members:
+      "الأعضاء الناجحون على SkillUp يقومون بالتدريس والتعلم معاً. ابدأ جلستك التالية اليوم وساهم في الحكمة الجماعية.",
     home_find_mentor: "ابحث عن مرشد",
     home_become_master: "كن معلماً",
 
@@ -490,41 +521,54 @@ export const translations = {
     land_future_learning: "مستقبل التعلم",
     land_master_skill: "اتقن أي مهارة",
     land_through_exchange: "من خلال التبادل",
-    land_connect_experts: "تواصل مع الخبراء في جميع أنحاء العالم لتبادل المعرفة. علّم ما تحب، تعلّم ما طالما أردت. بدون رسوم، فقط النمو.",
+    land_connect_experts:
+      "تواصل مع الخبراء في جميع أنحاء العالم لتبادل المعرفة. علّم ما تحب، تعلّم ما طالما أردت. بدون رسوم، فقط النمو.",
     land_join_community: "انضم إلى المجتمع",
     land_see_action: "شاهد العمل",
     land_learners: "5000+ متعلم",
     land_growing_daily: "ينموون معاً يومياً",
     land_everything_needed: "كل ما تحتاجه من أجل",
     land_mastery: "الإتقان",
-    land_designed_learner: "مصمم للمتعلم الحديث الذي يقدّر المجتمع وتبادل المعرفة.",
+    land_designed_learner:
+      "مصمم للمتعلم الحديث الذي يقدّر المجتمع وتبادل المعرفة.",
     land_smart_matching: "المطابقة الذكية",
-    land_smart_matching_desc: "يجد ذكاؤنا الاصطناعي المرشد المثالي لأسلوب التعلم وأهدافك الفريدة.",
+    land_smart_matching_desc:
+      "يجد ذكاؤنا الاصطناعي المرشد المثالي لأسلوب التعلم وأهدافك الفريدة.",
     land_active_community: "المجتمع النشط",
-    land_active_community_desc: "انضم إلى مجموعات الدراسة والمنتديات والأحداث المباشرة مع المتعلمين المتحمسين.",
+    land_active_community_desc:
+      "انضم إلى مجموعات الدراسة والمنتديات والأحداث المباشرة مع المتعلمين المتحمسين.",
     land_instant_booking: "الحجز الفوري",
     land_instant_booking_desc: "جدول جلسات الفيديو مع الخبراء في بضع نقرات.",
     land_trusted_network: "شبكة موثوقة",
-    land_trusted_network_desc: "تم التحقق من كل عضو لضمان بيئة آمنة وعالية الجودة.",
+    land_trusted_network_desc:
+      "تم التحقق من كل عضو لضمان بيئة آمنة وعالية الجودة.",
     land_learn_anything: "تعلّم أي شيء",
-    land_learn_anything_desc: "من البرمجة إلى الطبخ - ابحث عن معلم لأي مهارة تتخيلها.",
+    land_learn_anything_desc:
+      "من البرمجة إلى الطبخ - ابحث عن معلم لأي مهارة تتخيلها.",
     land_track_growth: "تتبع النمو",
-    land_track_growth_desc: "تصور تقدمك من خلال التحليلات التفصيلية وشارات المهارات.",
+    land_track_growth_desc:
+      "تصور تقدمك من خلال التحليلات التفصيلية وشارات المهارات.",
     land_simple_steps: "خطوات بسيطة نحو",
     land_transformation: "التحول",
-    land_refined_process: "لقد حسّنّا عملية التعلم من نظير إلى نظير بحيث تكون سلسة قدر الإمكان.",
+    land_refined_process:
+      "لقد حسّنّا عملية التعلم من نظير إلى نظير بحيث تكون سلسة قدر الإمكان.",
     land_get_started_today: "ابدأ اليوم",
     land_create_identity: "إنشاء هويتك",
-    land_create_identity_desc: "بناء ملف شخصي يعرض مهاراتك الفريدة وما تريد تعلمه.",
+    land_create_identity_desc:
+      "بناء ملف شخصي يعرض مهاراتك الفريدة وما تريد تعلمه.",
     land_list_skills: "اذكر مهاراتك",
-    land_list_skills_desc: "أخبر المجتمع ما يمكنك تعليمه. كل مهارة لها قيمة لشخص ما.",
+    land_list_skills_desc:
+      "أخبر المجتمع ما يمكنك تعليمه. كل مهارة لها قيمة لشخص ما.",
     land_connect_swap: "التواصل والتبادل",
-    land_connect_swap_desc: "تصفح السوق الخاص بنا وطلب تبادل مهارات مع شريكك المثالي.",
+    land_connect_swap_desc:
+      "تصفح السوق الخاص بنا وطلب تبادل مهارات مع شريكك المثالي.",
     land_grow_together: "النمو معاً",
-    land_grow_together_desc: "شارك في الجلسات المباشرة واكسب الرموز وافتح مستويات جديدة من المعرفة.",
+    land_grow_together_desc:
+      "شارك في الجلسات المباشرة واكسب الرموز وافتح مستويات جديدة من المعرفة.",
     land_ready_redefine: "هل أنت مستعد لإعادة تعريف",
     land_your_potential: "إمكانياتك؟",
-    land_thousands_experts: "انضم إلى آلاف الخبراء الذين يتبادلون المعرفة يومياً. المهارة العظيمة التالية الخاصة بك على بعد تبادل واحد فقط.",
+    land_thousands_experts:
+      "انضم إلى آلاف الخبراء الذين يتبادلون المعرفة يومياً. المهارة العظيمة التالية الخاصة بك على بعد تبادل واحد فقط.",
     land_start_swapping: "ابدأ التبادل مجاناً",
     land_features: "الميزات",
     land_pricing: "الأسعار",
@@ -566,7 +610,8 @@ export const translations = {
     prof_country: "الدولة",
     prof_select_country: "اختر دولة",
     prof_languages: "اللغات",
-    prof_languages_placeholder: "على سبيل المثال، الإنجليزية والإسبانية والفرنسية",
+    prof_languages_placeholder:
+      "على سبيل المثال، الإنجليزية والإسبانية والفرنسية",
     prof_separate_comma: "افصل اللغات بفواصل",
     prof_save_changes: "حفظ التغييرات",
     prof_cancel: "إلغاء",
@@ -608,10 +653,12 @@ export const translations = {
 
     // Courses Page
     course_explore: "استكشاف المهارات والدورات",
-    course_discover: "ابحث عن معلمين لأي مهارة تريد تعلمها - من البرمجة إلى الموسيقى إلى اللغات.",
+    course_discover:
+      "ابحث عن معلمين لأي مهارة تريد تعلمها - من البرمجة إلى الموسيقى إلى اللغات.",
     course_discover_category: "اكتشف",
     course_skills_taught: "مهارات يتم تدريسها من قبل معلمين خبراء",
-    course_search_placeholder: "ابحث عن أي مهارة (مثل React أو جيتار أو إسباني)...",
+    course_search_placeholder:
+      "ابحث عن أي مهارة (مثل React أو جيتار أو إسباني)...",
     course_filters: "المرشحات",
     course_learning_path: "مسار التعلم",
     course_all_categories: "جميع الفئات",
@@ -632,7 +679,8 @@ export const translations = {
     course_learning: "يتعلمون",
 
     // Footer
-    footer_desc: "إعادة تعريف النجاح التعليمي من خلال تبادل المعرفة من نظير إلى نظير. انضم إلى الحركة العالمية اليوم.",
+    footer_desc:
+      "إعادة تعريف النجاح التعليمي من خلال تبادل المعرفة من نظير إلى نظير. انضم إلى الحركة العالمية اليوم.",
     footer_platform: "المنصة",
     footer_explore_skills: "استكشف المهارات",
     footer_browse_teachers: "تصفح المعلمين",
@@ -644,7 +692,8 @@ export const translations = {
     footer_safety_tips: "نصائح الأمان",
     footer_contact: "اتصل بنا",
     footer_journal: "المجلة",
-    footer_journal_desc: "احصل على أحدث الأفكار حول تطوير المهارات وقصص المجتمع.",
+    footer_journal_desc:
+      "احصل على أحدث الأفكار حول تطوير المهارات وقصص المجتمع.",
     footer_email_placeholder: "عنوان بريدك الإلكتروني",
     footer_join: "انضم",
     footer_copyright: "2025 Skillup Global. جميع الحقوق محفوظة.",
@@ -671,7 +720,8 @@ export const translations = {
     auth_error_password_min: "يجب أن تكون كلمة المرور 6 أحرف على الأقل",
 
     auth_signup_title: "إنشاء حسابك",
-    auth_signup_subtitle: "انضم إلى آلاف المتعلمين والمرشدين في جميع أنحاء العالم",
+    auth_signup_subtitle:
+      "انضم إلى آلاف المتعلمين والمرشدين في جميع أنحاء العالم",
     auth_name_label: "الاسم الكامل",
     auth_name_placeholder: "اسمك الكامل",
     auth_confirm_password: "تأكيد كلمة المرور",
@@ -759,7 +809,8 @@ export const translations = {
     skills_neural_network: "الشبكة العصبية",
     skills_neural_desc: "النقل المباشر من نظير إلى نظير لتبادل الحكمة السريع",
     skills_wisdom_archive: "أرشيف الحكمة",
-    skills_archive_desc: "الوصول إلى تسجيلات عالية الوضوح لعمليات التبادل السابقة",
+    skills_archive_desc:
+      "الوصول إلى تسجيلات عالية الوضوح لعمليات التبادل السابقة",
     skills_session_pulse: "نبض الجلسة",
     skills_pulse_desc: "تتبع مباشر لتدفق التعلم والتدريس النشط الخاص بك",
     skills_the_vault: "الخزينة",
@@ -795,7 +846,8 @@ export const translations = {
     mentor_reserve_slot: "احجز موعداً",
     mentor_learning_list: "قائمة التعلم",
     mentor_swap_wisdom: "تبادل الحكمة؟",
-    mentor_swap_desc: "إذا كنت خبيراً فيما يريد {name} تعلمه، فقد يكون التبادل المباشر ممكناً.",
+    mentor_swap_desc:
+      "إذا كنت خبيراً فيما يريد {name} تعلمه، فقد يكون التبادل المباشر ممكناً.",
     mentor_propose_swap: "اقتراح تبادل مهارة",
     mentor_level: "المستوى",
 
@@ -857,7 +909,8 @@ export const translations = {
     // Home Page
     home_welcome: "欢迎回来",
     home_scholar: "学者",
-    home_journey: "您在 SkillUp 的旅程不仅仅是学习——它是一个去中心化的智慧交换。今天，您有",
+    home_journey:
+      "您在 SkillUp 的旅程不仅仅是学习——它是一个去中心化的智慧交换。今天，您有",
     home_recommended_sessions: "3 个推荐课程",
     home_that_align: "与您的成长轨迹相契合。",
     home_initiate_swap: "发起交换",
@@ -871,7 +924,8 @@ export const translations = {
     home_you_achieved: "您实现了",
     home_mastery: "精通",
     home_in_skills_month: "本月在 4 项技能中。",
-    home_teaching_influence: "您的教学影响力比上一个周期增长了 24%。您已帮助 18 名学生释放了新的潜力。",
+    home_teaching_influence:
+      "您的教学影响力比上一个周期增长了 24%。您已帮助 18 名学生释放了新的潜力。",
     home_earned_tokens: "+120 TK 已获得",
     home_star_avg: "4.9 平均星级",
     home_badges: "徽章",
@@ -882,7 +936,8 @@ export const translations = {
     home_phase_integration: "阶段 3：整合",
     home_pro_level: "专业水平",
     home_advanced_systems: "高级系统设计",
-    home_scaling_knowledge: "利用模块化设计模式和自动化反馈循环扩展知识生态系统。",
+    home_scaling_knowledge:
+      "利用模块化设计模式和自动化反馈循环扩展知识生态系统。",
     home_remaining: "剩余",
     home_with: "通过",
     home_master_grid: "大师网格",
@@ -893,7 +948,8 @@ export const translations = {
     home_bridge_skill: "桥接此技能",
     home_scale_influence: "扩大您的影响力",
     home_ready_elevate: "准备好提升网络了吗？",
-    home_successful_members: "SkillUp 上最成功的成员既教又学。今天就开始您的下一节课，为集体智慧做出贡献。",
+    home_successful_members:
+      "SkillUp 上最成功的成员既教又学。今天就开始您的下一节课，为集体智慧做出贡献。",
     home_find_mentor: "寻找导师",
     home_become_master: "成为大师",
 
@@ -901,7 +957,8 @@ export const translations = {
     land_future_learning: "学习的未来",
     land_master_skill: "精通任何技能",
     land_through_exchange: "通过交换",
-    land_connect_experts: "与全球专家联系以进行知识贸易。教你所爱，学你所想。无费用，只有成长。",
+    land_connect_experts:
+      "与全球专家联系以进行知识贸易。教你所爱，学你所想。无费用，只有成长。",
     land_join_community: "加入社区",
     land_see_action: "查看实际效果",
     land_learners: "5,000+ 学习者",
@@ -910,9 +967,11 @@ export const translations = {
     land_mastery: "精通",
     land_designed_learner: "专为重视社区和知识转型的现代学习者设计。",
     land_smart_matching: "智能匹配",
-    land_smart_matching_desc: "我们的 AI 为您独特的学习风格和目标寻找完美的导师。",
+    land_smart_matching_desc:
+      "我们的 AI 为您独特的学习风格和目标寻找完美的导师。",
     land_active_community: "活跃社区",
-    land_active_community_desc: "与热情的学习者一起加入学习小组、论坛和直播活动。",
+    land_active_community_desc:
+      "与热情的学习者一起加入学习小组、论坛和直播活动。",
     land_instant_booking: "即时预订",
     land_instant_booking_desc: "只需点击几下即可与专家安排视频课程。",
     land_trusted_network: "信任网络",
@@ -926,16 +985,19 @@ export const translations = {
     land_refined_process: "我们优化了点对点学习的过程，使其尽可能无缝。",
     land_get_started_today: "今天就开始",
     land_create_identity: "创建您的身份",
-    land_create_identity_desc: "建立一个展示您独特技能和您渴望学习内容的个人资料。",
+    land_create_identity_desc:
+      "建立一个展示您独特技能和您渴望学习内容的个人资料。",
     land_list_skills: "列出您的技能",
-    land_list_skills_desc: "告诉社区您可以教什么。每项技能对某人来说都是宝贵的。",
+    land_list_skills_desc:
+      "告诉社区您可以教什么。每项技能对某人来说都是宝贵的。",
     land_connect_swap: "连接并交换",
     land_connect_swap_desc: "浏览我们的市场并请求与您完美匹配的技能交换。",
     land_grow_together: "共同成长",
     land_grow_together_desc: "参与直播课程，赚取代币，并开启知识的新高度。",
     land_ready_redefine: "准备好重新定义",
     land_your_potential: "您的潜力了吗？",
-    land_thousands_experts: "加入成千上万每天进行知识贸易的专家。您的下一项伟大技能只需一次交换。",
+    land_thousands_experts:
+      "加入成千上万每天进行知识贸易的专家。您的下一项伟大技能只需一次交换。",
     land_start_swapping: "开始免费交换",
     land_features: "功能",
     land_pricing: "定价",
@@ -1205,7 +1267,8 @@ export const translations = {
     mentor_reserve_slot: "预约名额",
     mentor_learning_list: "学习清单",
     mentor_swap_wisdom: "智慧交换？",
-    mentor_swap_desc: "如果您是 {name} 想学习内容的专家，直接交换可能是可行的。",
+    mentor_swap_desc:
+      "如果您是 {name} 想学习内容的专家，直接交换可能是可行的。",
     mentor_propose_swap: "提议技能交换",
     mentor_level: "等级",
 
@@ -1231,4 +1294,3 @@ export const translations = {
     common_show_less: "收起",
   },
 };
-

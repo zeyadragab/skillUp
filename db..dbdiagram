@@ -1,0 +1,627 @@
+{
+  "version": "1.0.0",
+  "darkMode": true,
+  "gridEnabling": false,
+  "detailLevel": "All",
+  "tablePositions": [
+    {
+      "name": "users",
+      "schemaName": "public",
+      "x": -528.774457809785,
+      "y": 961.0352447496148
+    },
+    {
+      "name": "skills",
+      "schemaName": "public",
+      "x": -306.55101620425035,
+      "y": 302.8604356530103
+    },
+    {
+      "name": "user_skills",
+      "schemaName": "public",
+      "x": 60.68301016674957,
+      "y": 1764.3757372672903
+    },
+    {
+      "name": "sessions",
+      "schemaName": "public",
+      "x": 1314,
+      "y": 772
+    },
+    {
+      "name": "transactions",
+      "schemaName": "public",
+      "x": 2295.912931016161,
+      "y": -129.02852215946132
+    },
+    {
+      "name": "payments",
+      "schemaName": "public",
+      "x": 900.111945836364,
+      "y": -627.6159112913124
+    },
+    {
+      "name": "conversations",
+      "schemaName": "public",
+      "x": 383.67960592808095,
+      "y": 1298.9092857092255
+    },
+    {
+      "name": "messages",
+      "schemaName": "public",
+      "x": 1372.2509113267338,
+      "y": 2468.802487685253
+    },
+    {
+      "name": "notifications",
+      "schemaName": "public",
+      "x": 1974,
+      "y": 506
+    },
+    {
+      "name": "recordings",
+      "schemaName": "public",
+      "x": 886.4769458009424,
+      "y": 387.796699576836
+    },
+    {
+      "name": "availability",
+      "schemaName": "public",
+      "x": 1314,
+      "y": 1842
+    },
+    {
+      "name": "user_verifications",
+      "schemaName": "public",
+      "x": -528.774457809785,
+      "y": 3594.1262850966145
+    },
+    {
+      "name": "otps",
+      "schemaName": "public",
+      "x": 72.41448854339001,
+      "y": -238.52176314096653
+    },
+    {
+      "name": "activation_tokens",
+      "schemaName": "public",
+      "x": 1789.2048029286186,
+      "y": 2349.0285221594613
+    },
+    {
+      "name": "session_summaries",
+      "schemaName": "public",
+      "x": 2155.655369371581,
+      "y": 1900.6137684898322
+    },
+    {
+      "name": "admins",
+      "schemaName": "public",
+      "x": -51.113839911511604,
+      "y": 2327.9245820535425
+    },
+    {
+      "name": "reports",
+      "schemaName": "public",
+      "x": 2181.655369371581,
+      "y": 1218.977124395861
+    },
+    {
+      "name": "system_notifications",
+      "schemaName": "public",
+      "x": 341.41618092437216,
+      "y": 2747.255257679198
+    },
+    {
+      "name": "system_settings",
+      "schemaName": "public",
+      "x": 1736.740603765073,
+      "y": 2804.5596691692176
+    },
+    {
+      "name": "activity_logs",
+      "schemaName": "public",
+      "x": 1240.9480958354038,
+      "y": 3160.1262850966145
+    }
+  ],
+  "tableGroupCollapseStates": [],
+  "stickyNoteLayouts": [],
+  "referencePaths": [
+    {
+      "firstFieldNames": [
+        "user"
+      ],
+      "firstTableName": "user_skills",
+      "firstSchemaName": "public",
+      "firstRelation": "*",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "users",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "skill"
+      ],
+      "firstTableName": "user_skills",
+      "firstSchemaName": "public",
+      "firstRelation": "*",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "skills",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "teacher"
+      ],
+      "firstTableName": "sessions",
+      "firstSchemaName": "public",
+      "firstRelation": "*",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "users",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "learner"
+      ],
+      "firstTableName": "sessions",
+      "firstSchemaName": "public",
+      "firstRelation": "*",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "users",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "skill"
+      ],
+      "firstTableName": "sessions",
+      "firstSchemaName": "public",
+      "firstRelation": "*",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "skills",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "cancelledBy"
+      ],
+      "firstTableName": "sessions",
+      "firstSchemaName": "public",
+      "firstRelation": "*",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "users",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "user"
+      ],
+      "firstTableName": "transactions",
+      "firstSchemaName": "public",
+      "firstRelation": "*",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "users",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "session"
+      ],
+      "firstTableName": "transactions",
+      "firstSchemaName": "public",
+      "firstRelation": "*",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "sessions",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "payment"
+      ],
+      "firstTableName": "transactions",
+      "firstSchemaName": "public",
+      "firstRelation": "*",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "payments",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "user"
+      ],
+      "firstTableName": "payments",
+      "firstSchemaName": "public",
+      "firstRelation": "*",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "users",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "conversation"
+      ],
+      "firstTableName": "messages",
+      "firstSchemaName": "public",
+      "firstRelation": "*",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "conversations",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "sender"
+      ],
+      "firstTableName": "messages",
+      "firstSchemaName": "public",
+      "firstRelation": "*",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "users",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "lastMessage"
+      ],
+      "firstTableName": "conversations",
+      "firstSchemaName": "public",
+      "firstRelation": "*",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "messages",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "recipient"
+      ],
+      "firstTableName": "notifications",
+      "firstSchemaName": "public",
+      "firstRelation": "*",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "users",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "relatedUser"
+      ],
+      "firstTableName": "notifications",
+      "firstSchemaName": "public",
+      "firstRelation": "*",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "users",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "relatedSession"
+      ],
+      "firstTableName": "notifications",
+      "firstSchemaName": "public",
+      "firstRelation": "*",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "sessions",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "relatedRecording"
+      ],
+      "firstTableName": "notifications",
+      "firstSchemaName": "public",
+      "firstRelation": "*",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "recordings",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "session"
+      ],
+      "firstTableName": "recordings",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "sessions",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "skill"
+      ],
+      "firstTableName": "recordings",
+      "firstSchemaName": "public",
+      "firstRelation": "*",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "skills",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "teacher"
+      ],
+      "firstTableName": "availability",
+      "firstSchemaName": "public",
+      "firstRelation": "*",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "users",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "user"
+      ],
+      "firstTableName": "activation_tokens",
+      "firstSchemaName": "public",
+      "firstRelation": "*",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "users",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "session"
+      ],
+      "firstTableName": "session_summaries",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "sessions",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "reporter"
+      ],
+      "firstTableName": "reports",
+      "firstSchemaName": "public",
+      "firstRelation": "*",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "users",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "reportedUser"
+      ],
+      "firstTableName": "reports",
+      "firstSchemaName": "public",
+      "firstRelation": "*",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "users",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "reportedSession"
+      ],
+      "firstTableName": "reports",
+      "firstSchemaName": "public",
+      "firstRelation": "*",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "sessions",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "assignedTo"
+      ],
+      "firstTableName": "reports",
+      "firstSchemaName": "public",
+      "firstRelation": "*",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "admins",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "createdBy"
+      ],
+      "firstTableName": "system_notifications",
+      "firstSchemaName": "public",
+      "firstRelation": "*",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "admins",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "lastUpdatedBy"
+      ],
+      "firstTableName": "system_settings",
+      "firstSchemaName": "public",
+      "firstRelation": "*",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "admins",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "admin"
+      ],
+      "firstTableName": "activity_logs",
+      "firstSchemaName": "public",
+      "firstRelation": "*",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "admins",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "createdBy"
+      ],
+      "firstTableName": "admins",
+      "firstSchemaName": "public",
+      "firstRelation": "*",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "admins",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "user"
+      ],
+      "firstTableName": "user_verifications",
+      "firstSchemaName": "public",
+      "firstRelation": "*",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "users",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "otp"
+      ],
+      "firstTableName": "user_verifications",
+      "firstSchemaName": "public",
+      "firstRelation": "*",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "otps",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "user"
+      ],
+      "firstTableName": "otps",
+      "firstSchemaName": "public",
+      "firstRelation": "*",
+      "secondFieldNames": [
+        "_id"
+      ],
+      "secondTableName": "users",
+      "secondSchemaName": "public",
+      "secondRelation": "1",
+      "checkPoints": []
+    }
+  ]
+}

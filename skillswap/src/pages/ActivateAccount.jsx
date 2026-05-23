@@ -40,9 +40,9 @@ const ActivateAccount = () => {
         setStatus("success");
         setMessage(data.message || "Account activated successfully!");
 
-        // Redirect to login after 3 seconds
+        // Redirect to home after 3 seconds
         setTimeout(() => {
-          navigate("/signin");
+          navigate("/home");
         }, 3000);
       } else {
         setStatus("error");
@@ -117,13 +117,13 @@ const ActivateAccount = () => {
             </h2>
             <p className="text-gray-600 mb-6">{message}</p>
             <p className="text-sm text-gray-500 mb-4">
-              Redirecting to login page...
+              Redirecting to homepage...
             </p>
             <Link
-              to="/signin"
+              to="/home"
               className="inline-block px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
             >
-              Go to Login
+              Go to Homepage
             </Link>
           </div>
         )}

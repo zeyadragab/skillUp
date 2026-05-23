@@ -45,7 +45,7 @@ const NavDropdownItem = memo(
       className="flex items-center p-4 transition-all rounded-3xl hover:bg-bg-alt group"
     >
       <div
-        className={`w-12 h-12 rounded-2xl ${color} flex items-center justify-center text-white ${isRTL ? 'ml-4' : 'mr-4'} group-hover:scale-110 group-hover:rotate-6 transition-all shadow-lg shrink-0`}
+        className={`w-12 h-12 rounded-2xl ${color} flex items-center justify-center text-white ${isRTL ? "ml-4" : "mr-4"} group-hover:scale-110 group-hover:rotate-6 transition-all shadow-lg shrink-0`}
       >
         <Icon className="w-5 h-5" />
       </div>
@@ -64,7 +64,9 @@ const NavDropdownItem = memo(
           {description}
         </p>
       </div>
-      <ChevronRight className={`w-4 h-4 transition-all opacity-0 text-border group-hover:text-primary ${isRTL ? 'group-hover:-translate-x-1' : 'group-hover:translate-x-1'} group-hover:opacity-100 shrink-0`} />
+      <ChevronRight
+        className={`w-4 h-4 transition-all opacity-0 text-border group-hover:text-primary ${isRTL ? "group-hover:-translate-x-1" : "group-hover:translate-x-1"} group-hover:opacity-100 shrink-0`}
+      />
     </Link>
   ),
 );
@@ -249,7 +251,7 @@ const SearchBar = memo(() => {
 // ==================== LANGUAGE SELECTOR ====================
 const LangSelector = memo(() => {
   const { lang, setLang, t } = useLanguage();
-  
+
   const languages = [
     { code: "en", label: "English", short: "EN" },
     { code: "ar", label: "العربية", short: "ع" },
@@ -258,12 +260,10 @@ const LangSelector = memo(() => {
 
   return (
     <HeadlessMenu as="div" className="relative">
-      <HeadlessMenu.Button
-        className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-border bg-bg-alt hover:bg-white hover:border-primary/40 transition-all group"
-      >
+      <HeadlessMenu.Button className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-border bg-bg-alt hover:bg-white hover:border-primary/40 transition-all group">
         <Globe className="w-3.5 h-3.5 text-text-muted group-hover:text-primary transition-colors" />
         <span className="text-[10px] font-black uppercase tracking-widest text-text-muted group-hover:text-primary transition-colors">
-          {languages.find(l => l.code === lang)?.short || "EN"}
+          {languages.find((l) => l.code === lang)?.short || "EN"}
         </span>
       </HeadlessMenu.Button>
 
@@ -284,7 +284,9 @@ const LangSelector = memo(() => {
                   <button
                     onClick={() => setLang(language.code)}
                     className={`${
-                      active || lang === language.code ? "bg-primary/10 text-primary" : "text-text-main"
+                      active || lang === language.code
+                        ? "bg-primary/10 text-primary"
+                        : "text-text-main"
                     } group flex w-full items-center rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-widest transition-colors`}
                   >
                     {language.label}
@@ -303,7 +305,6 @@ const LangSelector = memo(() => {
 const AdvancedNavbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeDropdown, setActiveDropdown] = useState(null);
   const [categories, setCategories] = useState([]);
   const { user, logout } = useUser();
   const { tokens } = useTokens();
@@ -331,122 +332,63 @@ const AdvancedNavbar = () => {
     fetchCategories();
   }, []);
 
-  const navItems = React.useMemo(() => [
-    {
-      name: t("nav_discover"),
-      href: "/courses",
-      icon: <Globe className="w-4 h-4" />,
-      dropdown: (
-        <div className="w-80 p-4 bg-white border border-border shadow-2xl rounded-[40px] overflow-hidden">
-          <div className="px-4 py-2 mb-2 border-b border-border">
-            <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">
-              {t("drop_learning_channels")}
-            </p>
-          </div>
-          <div className="grid grid-cols-1 gap-1">
-            {categories.slice(0, 5).map((cat) => (
+  const navItems = React.useMemo(
+    () => [
+      {
+        name: t("nav_discover"),
+        href: "/courses",
+        icon: <Globe className="w-4 h-4" />,
+      },
+      {
+        name: t("nav_guild"),
+        href: "/teachers",
+      },
+      {
+        name: t("nav_ecosystem"),
+        href: "/community",
+        icon: <Rocket className="w-4 h-4" />,
+        dropdown: (
+          <div className="w-80 p-4 bg-white border border-border shadow-2xl rounded-[40px] overflow-hidden">
+            <div className="px-4 py-2 mb-2 border-b border-border">
+              <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">
+                {t("drop_platform_pulse")}
+              </p>
+            </div>
+            <div className="space-y-1">
               <NavDropdownItem
-                key={cat.id}
-                icon={BookOpen}
-                title={cat.name}
-                description={`${cat.skillCount || 0} ${t("drop_active_nodes")}`}
-                href={`/courses?category=${cat.name}`}
+                icon={LayoutDashboard}
+                title={t("drop_global_hub")}
+                description={t("drop_global_hub_desc")}
+                href="/community"
+                color="bg-indigo-500"
+                onClick={() => setActiveDropdown(null)}
+                isRTL={isRTL}
+              />
+              <NavDropdownItem
+                icon={MessageCircle}
+                title={t("drop_channels")}
+                description={t("drop_channels_desc")}
+                href="/community#channels"
                 color="bg-primary"
                 onClick={() => setActiveDropdown(null)}
                 isRTL={isRTL}
               />
-            ))}
+              <NavDropdownItem
+                icon={Award}
+                title={t("drop_badges")}
+                description={t("drop_badges_desc")}
+                href="/community#rewards"
+                color="bg-accent"
+                onClick={() => setActiveDropdown(null)}
+                isRTL={isRTL}
+              />
+            </div>
           </div>
-        </div>
-      ),
-    },
-    {
-      name: t("nav_guild"),
-      href: "/teachers",
-      icon: <Users className="w-4 h-4" />,
-      dropdown: (
-        <div className="w-80 p-4 bg-white border border-border shadow-2xl rounded-[40px] overflow-hidden">
-          <div className="px-4 py-2 mb-2 border-b border-border">
-            <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">
-              {t("drop_swap_infra")}
-            </p>
-          </div>
-          <div className="space-y-1">
-            <NavDropdownItem
-              icon={GraduationCap}
-              title={t("drop_browse_mentors")}
-              description={t("drop_browse_mentors_desc")}
-              href="/teachers"
-              color="bg-secondary"
-              onClick={() => setActiveDropdown(null)}
-              isRTL={isRTL}
-            />
-            <NavDropdownItem
-              icon={Briefcase}
-              title={t("drop_career_swaps")}
-              description={t("drop_career_swaps_desc")}
-              href="/teachers?type=career"
-              color="bg-accent"
-              onClick={() => setActiveDropdown(null)}
-              isRTL={isRTL}
-            />
-            <NavDropdownItem
-              icon={Zap}
-              title={t("drop_instant")}
-              description={t("drop_instant_desc")}
-              href="/teachers?status=online"
-              color="bg-orange-500"
-              onClick={() => setActiveDropdown(null)}
-              isRTL={isRTL}
-            />
-          </div>
-        </div>
-      ),
-    },
-    {
-      name: t("nav_ecosystem"),
-      href: "/community",
-      icon: <Rocket className="w-4 h-4" />,
-      dropdown: (
-        <div className="w-80 p-4 bg-white border border-border shadow-2xl rounded-[40px] overflow-hidden">
-          <div className="px-4 py-2 mb-2 border-b border-border">
-            <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">
-              {t("drop_platform_pulse")}
-            </p>
-          </div>
-          <div className="space-y-1">
-            <NavDropdownItem
-              icon={LayoutDashboard}
-              title={t("drop_global_hub")}
-              description={t("drop_global_hub_desc")}
-              href="/community"
-              color="bg-indigo-500"
-              onClick={() => setActiveDropdown(null)}
-              isRTL={isRTL}
-            />
-            <NavDropdownItem
-              icon={MessageCircle}
-              title={t("drop_channels")}
-              description={t("drop_channels_desc")}
-              href="/community#channels"
-              color="bg-primary"
-              onClick={() => setActiveDropdown(null)}
-              isRTL={isRTL}
-            />
-            <NavDropdownItem
-              icon={Award}
-              title={t("drop_badges")}
-              description={t("drop_badges_desc")}
-              href="/community#rewards"
-              color="bg-accent"
-              onClick={() => setActiveDropdown(null)}
-              isRTL={isRTL}
-            />
-          </div>
-        </div>
-      ),
-    },
-  ], [t, categories, isRTL]);
+        ),
+      },
+    ],
+    [t, categories, isRTL],
+  );
 
   return (
     <>
@@ -470,39 +412,17 @@ const AdvancedNavbar = () => {
           {/* Desktop Nav */}
           <nav className="items-center hidden space-x-2 lg:flex">
             {navItems.map((item) => (
-              <div
+              <Link
                 key={item.name}
-                className="relative"
-                onMouseEnter={() => setActiveDropdown(item.name)}
-                onMouseLeave={() => setActiveDropdown(null)}
+                to={item.href}
+                className={`px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                  location.pathname.startsWith(item.href)
+                    ? "text-primary bg-primary/5 shadow-sm"
+                    : "text-text-muted hover:text-text-main hover:bg-bg-alt"
+                }`}
               >
-                <Link
-                  to={item.href}
-                  className={`flex items-center space-x-2 px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                    location.pathname.startsWith(item.href)
-                      ? "text-primary bg-primary/5 shadow-sm"
-                      : "text-text-muted hover:text-text-main hover:bg-bg-alt"
-                  }`}
-                >
-                  <span>{item.name}</span>
-                  <ChevronDown
-                    className={`w-3 h-3 transition-transform duration-300 ${activeDropdown === item.name ? "rotate-180 text-primary" : "text-text-muted/50"}`}
-                  />
-                </Link>
-
-                <AnimatePresence>
-                  {activeDropdown === item.name && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 15, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      className={`absolute mt-4 top-full ${isRTL ? "right-1/2 translate-x-1/2" : "left-1/2 -translate-x-1/2"}`}
-                    >
-                      {item.dropdown}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                {item.name}
+              </Link>
             ))}
           </nav>
 
@@ -513,7 +433,7 @@ const AdvancedNavbar = () => {
             <LangSelector />
             {user ? (
               <>
-                {/* Vault Balance */}
+                {/* SystemBalance */}
                 <Link
                   to="/buy-tokens"
                   className="items-center hidden px-6 text-white transition-all border-2 shadow-xl md:flex h-11 bg-text-main hover:bg-white hover:text-text-main border-text-main rounded-2xl shadow-text-main/10 group"

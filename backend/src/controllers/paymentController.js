@@ -11,11 +11,16 @@ import {
 const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
 
 // Token packages matching frontend
+// 1 token = 10 EGP (≤100 tokens) | 8.5 EGP (>100 tokens)
+const calcPrice = (tokens) =>
+  Math.round(tokens <= 100 ? tokens * 10 : tokens * 8.5);
+
 const TOKEN_PACKAGES = {
-  starter: { tokens: 10, price: 9.99, bonus: 0, name: 'Starter Pack' },
-  popular: { tokens: 25, price: 19.99, bonus: 5, name: 'Popular Pack' },
-  professional: { tokens: 50, price: 34.99, bonus: 10, name: 'Professional' },
-  premium: { tokens: 100, price: 59.99, bonus: 25, name: 'Premium Pack' }
+  starter:      { tokens: 10,  price: calcPrice(10),  bonus: 0, name: 'Starter' },
+  basic:        { tokens: 30,  price: calcPrice(30),  bonus: 0, name: 'Basic' },
+  popular:      { tokens: 75,  price: calcPrice(75),  bonus: 0, name: 'Popular' },
+  professional: { tokens: 100, price: calcPrice(100), bonus: 0, name: 'Pro' },
+  premium:      { tokens: 200, price: calcPrice(200), bonus: 0, name: 'Elite' },
 };
 
 // @desc    Create payment intent
@@ -58,7 +63,7 @@ export const createPaymentIntent = async (req, res, next) => {
     // Create payment intent
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
-      currency: 'usd',
+      currency: 'egp',
       customer: customer.id,
       metadata: {
         userId: user._id.toString(),
@@ -74,7 +79,7 @@ export const createPaymentIntent = async (req, res, next) => {
     const payment = await Payment.create({
       user: user._id,
       amount: package_details.price,
-      currency: 'USD',
+      currency: 'EGP',
       tokensAmount: totalTokens,
       packageType,
       stripePaymentIntentId: paymentIntent.id,
@@ -395,13 +400,6 @@ export const processAlternativePayment = async (req, res, next) => {
   try {
     const { packageType, paymentMethod, paymentDetails } = req.body;
 
-    if (!packageType || !TOKEN_PACKAGES[packageType]) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid package type'
-      });
-    }
-
     if (!paymentMethod || !['paypal', 'visa', 'instapay', 'fawry', 'wallet'].includes(paymentMethod)) {
       return res.status(400).json({
         success: false,
@@ -409,14 +407,32 @@ export const processAlternativePayment = async (req, res, next) => {
       });
     }
 
-    const package_details = TOKEN_PACKAGES[packageType];
+    // Support custom token amount sent from frontend
+    let package_details;
+    if (packageType === 'custom') {
+      const customTokens = parseInt(paymentDetails?.customTokens);
+      if (!customTokens || customTokens < 1) {
+        return res.status(400).json({ success: false, message: 'Invalid custom token amount' });
+      }
+      package_details = {
+        tokens: customTokens,
+        price: calcPrice(customTokens),
+        bonus: 0,
+        name: `Custom (${customTokens} tokens)`,
+      };
+    } else if (TOKEN_PACKAGES[packageType]) {
+      package_details = TOKEN_PACKAGES[packageType];
+    } else {
+      return res.status(400).json({ success: false, message: 'Invalid package type' });
+    }
+
     const totalTokens = package_details.tokens + package_details.bonus;
 
     // Create payment record
     const payment = await Payment.create({
       user: req.user._id,
       amount: package_details.price,
-      currency: 'USD',
+      currency: 'EGP',
       tokensAmount: totalTokens,
       packageType,
       paymentMethod,

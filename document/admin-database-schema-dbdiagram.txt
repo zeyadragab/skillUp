@@ -1,0 +1,514 @@
+// skillup Admin Panel - Complete Database Schema with AI Features
+// Use this schema on dbdiagram.io
+// Instructions: Copy this entire file and paste it into https://dbdiagram.io/
+
+// ==================== ADMIN COLLECTIONS ====================
+
+Table admins {
+  _id ObjectId [pk, note: 'Primary Key']
+  name varchar(100) [not null, note: 'Admin full name']
+  email varchar(255) [unique, not null, note: 'Admin email address']
+  password varchar(255) [not null, note: 'Bcrypt hashed password (salt: 12)']
+  role varchar(20) [default: 'moderator', note: 'super_admin, moderator, support']
+
+  // Permissions (embedded object)
+  permissions json [note: 'Permission flags object']
+  permissions_users boolean [default: true, note: 'User management access']
+  permissions_teachers boolean [default: true, note: 'Teacher management access']
+  permissions_skills boolean [default: true, note: 'Skill management access']
+  permissions_sessions boolean [default: true, note: 'Session management access']
+  permissions_transactions boolean [default: false, note: 'Transaction access']
+  permissions_reports boolean [default: true, note: 'Report management access']
+  permissions_reviews boolean [default: true, note: 'Review management access']
+  permissions_notifications boolean [default: false, note: 'Notification access']
+  permissions_settings boolean [default: false, note: 'Settings access']
+  permissions_analytics boolean [default: true, note: 'Analytics access']
+
+  // Profile
+  avatar varchar(500) [note: 'Profile picture URL']
+  isActive boolean [default: true, note: 'Account active status']
+  lastLogin timestamp [note: 'Last login timestamp']
+
+  // Login history (embedded array)
+  loginHistory json [note: 'Array of login records with IP, userAgent, timestamp']
+
+  // Audit
+  createdBy ObjectId [ref: > admins._id, note: 'Admin who created this account']
+
+  // Timestamps
+  createdAt timestamp [default: `now()`, note: 'Account creation']
+  updatedAt timestamp [default: `now()`, note: 'Last update']
+
+  Indexes {
+    email [unique]
+    (role, isActive)
+    lastLogin
+  }
+}
+
+// ==================== REPORTS & MODERATION ====================
+
+Table reports {
+  _id ObjectId [pk, note: 'Primary Key']
+  reporter ObjectId [ref: > users._id, not null, note: 'User who submitted report']
+
+  // Reported entity (one of these)
+  reportedUser ObjectId [ref: > users._id, note: 'Reported user']
+  reportedSession ObjectId [ref: > sessions._id, note: 'Reported session']
+  reportedReview ObjectId [ref: > reviews._id, note: 'Reported review']
+
+  // Report details
+  type varchar(50) [not null, note: 'user, session, review, spam, fraud, inappropriate, other']
+  reason varchar(200) [not null, note: 'Short reason for report']
+  description text [not null, note: 'Detailed description']
+  evidence json [note: 'Array of screenshot/file URLs']
+
+  // AI-Enhanced Fields
+  aiAnalysis json [note: 'AI moderation analysis object']
+  aiAnalysis_contentFlags json [note: 'AI content flag scores (hate, harassment, sexual, violence, spam, fraud)']
+  aiAnalysis_severity varchar(20) [note: 'low, medium, high, critical (AI-determined)']
+  aiAnalysis_confidence decimal(3,2) [note: 'AI confidence score (0-1)']
+  aiAnalysis_suggestedAction varchar(50) [note: 'no_action, warning, suspension, ban, content_removed']
+  aiAnalysis_reasoning text [note: 'AI explanation for severity/action']
+
+  // Status
+  status varchar(20) [default: 'pending', note: 'pending, under_review, resolved, dismissed']
+  priority varchar(20) [default: 'medium', note: 'low, medium, high, critical (AI can auto-set)']
+  assignedTo ObjectId [ref: > admins._id, note: 'Assigned moderator']
+
+  // Resolution (embedded object)
+  resolution json [note: 'Resolution object']
+  resolution_action varchar(50) [note: 'no_action, warning, suspension, ban, content_removed']
+  resolution_notes text [note: 'Resolution notes']
+  resolution_resolvedBy ObjectId [ref: > admins._id, note: 'Admin who resolved']
+  resolution_resolvedAt timestamp [note: 'Resolution timestamp']
+
+  // Admin notes (embedded array)
+  adminNotes json [note: 'Array of admin note objects with admin, note, createdAt']
+
+  // Timestamps
+  createdAt timestamp [default: `now()`, note: 'Report submission']
+  updatedAt timestamp [default: `now()`, note: 'Last update']
+
+  Indexes {
+    (status, priority)
+    reporter
+    reportedUser
+    (type, createdAt)
+  }
+}
+
+// ==================== SYSTEM NOTIFICATIONS ====================
+
+Table system_notifications {
+  _id ObjectId [pk, note: 'Primary Key']
+  title varchar(200) [not null, note: 'Notification title']
+  message text [not null, note: 'Notification message']
+  type varchar(50) [default: 'info', note: 'announcement, maintenance, update, promotion, warning, info']
+  targetAudience varchar(50) [default: 'all', note: 'all, users, teachers, verified_teachers, new_users']
+  priority varchar(20) [default: 'medium', note: 'low, medium, high']
+
+  // Channels (embedded object)
+  channels json [note: 'Delivery channels object']
+  channels_inApp boolean [default: true, note: 'Show in app']
+  channels_email boolean [default: false, note: 'Send email']
+  channels_push boolean [default: false, note: 'Push notification']
+
+  // Scheduling
+  scheduledFor timestamp [note: 'Schedule for future delivery']
+  expiresAt timestamp [note: 'Auto-hide after this date']
+
+  // Status
+  status varchar(20) [default: 'draft', note: 'draft, scheduled, sent, cancelled']
+  sentAt timestamp [note: 'Actual send timestamp']
+  sentTo integer [default: 0, note: 'Number of users notified']
+
+  // Read tracking (embedded array)
+  readBy json [note: 'Array of {user: ObjectId, readAt: Date}']
+
+  // Metadata (embedded object)
+  metadata json [note: 'Additional metadata object']
+  metadata_link varchar(500) [note: 'Link URL']
+  metadata_imageUrl varchar(500) [note: 'Image URL']
+  metadata_actionButton json [note: 'Action button {text, url}']
+
+  // Audit
+  createdBy ObjectId [ref: > admins._id, not null, note: 'Admin who created']
+
+  // Timestamps
+  createdAt timestamp [default: `now()`, note: 'Creation']
+  updatedAt timestamp [default: `now()`, note: 'Last update']
+
+  Indexes {
+    (status, scheduledFor)
+    targetAudience
+    createdBy
+  }
+}
+
+// ==================== SYSTEM SETTINGS ====================
+
+Table system_settings {
+  _id ObjectId [pk, note: 'Primary Key']
+  key varchar(100) [unique, not null, note: 'Setting key (e.g., welcome_bonus)']
+  value json [not null, note: 'Setting value (any type)']
+  category varchar(50) [default: 'general', note: 'general, tokens, sessions, email, security, features']
+  description text [note: 'Setting description']
+  lastUpdatedBy ObjectId [ref: > admins._id, note: 'Last admin who updated']
+
+  // Timestamps
+  createdAt timestamp [default: `now()`, note: 'Creation']
+  updatedAt timestamp [default: `now()`, note: 'Last update']
+
+  Indexes {
+    key [unique]
+    category
+  }
+
+  Note: '''
+  Default Settings:
+  GENERAL: site_name, site_tagline, maintenance_mode
+  TOKENS: welcome_bonus (50), referral_bonus (20), min_session_tokens (5), max_session_tokens (100), token_price_usd (0.10)
+  SESSIONS: min_session_duration (30), max_session_duration (180), cancellation_penalty_percent (20), auto_complete_hours (24)
+  SECURITY: max_login_attempts (5), lockout_duration_minutes (15), require_email_verification (true), require_teacher_verification (true)
+  FEATURES: enable_messaging (true), enable_video_calls (true), enable_reviews (true), enable_reports (true), enable_ai_summaries (true), enable_ai_moderation (true)
+  '''
+}
+
+// ==================== ACTIVITY LOGS ====================
+
+Table activity_logs {
+  _id ObjectId [pk, note: 'Primary Key']
+  admin ObjectId [ref: > admins._id, not null, note: 'Admin who performed action']
+  action varchar(50) [not null, note: 'Action type (25+ enum values)']
+  targetType varchar(50) [note: 'user, teacher, skill, category, session, transaction, report, review, notification, settings, admin']
+  targetId ObjectId [note: 'ID of target entity']
+  details json [note: 'Action details (JSON)']
+  ipAddress varchar(45) [note: 'Request IP address']
+  userAgent text [note: 'Browser/device information']
+  status varchar(20) [default: 'success', note: 'success, failed']
+
+  // Timestamps
+  createdAt timestamp [default: `now()`, note: 'Action timestamp']
+  updatedAt timestamp [default: `now()`, note: 'Last update']
+
+  Indexes {
+    (admin, createdAt)
+    (action, createdAt)
+    (targetType, targetId)
+    createdAt
+  }
+
+  Note: '''
+  Action Types:
+  AUTHENTICATION: login, logout
+  USER_MANAGEMENT: user_view, user_update, user_ban, user_unban, user_delete
+  TEACHER_MANAGEMENT: teacher_verify, teacher_reject
+  SKILL_MANAGEMENT: skill_create, skill_update, skill_delete, category_create, category_update, category_delete
+  SESSION_MANAGEMENT: session_view, session_cancel, session_refund
+  TRANSACTION_MANAGEMENT: transaction_view, transaction_adjust
+  REPORT_MANAGEMENT: report_view, report_resolve, report_dismiss
+  REVIEW_MANAGEMENT: review_delete, review_hide
+  NOTIFICATION_MANAGEMENT: notification_send
+  SETTINGS_MANAGEMENT: settings_update
+  ADMIN_MANAGEMENT: admin_create, admin_update, admin_delete
+  '''
+}
+
+// ==================== AI FEATURES DATA MODELS ====================
+
+// NOTE: These are stored in the main user database but managed by admin panel
+
+Table session_summaries {
+  _id ObjectId [pk, note: 'Primary Key']
+  session ObjectId [ref: - sessions._id, unique, not null, note: 'Related session (1:1 relationship)']
+
+  // Transcript data (embedded array)
+  transcript json [note: 'Array of transcript entries: {speaker, speakerName, text, timestamp, startTime, endTime}']
+
+  // AI-Generated Summary (embedded object)
+  summary json [note: 'AI-generated summary object']
+  summary_overview text [note: 'AI-generated session overview']
+  summary_mainTopics json [note: 'Array of main topics: {topic, description, timestamp}']
+  summary_keyLearningPoints json [note: 'Array of key learning points (strings)']
+  summary_actionItems json [note: 'Array of action items: {description, assignedTo}']
+  summary_highlights json [note: 'Array of highlights: {description, timestamp, importance}']
+
+  // AI-Generated Analysis (embedded object)
+  analysis json [note: 'AI-generated analysis object']
+  analysis_engagement json [note: 'Engagement metrics: {score, teacherParticipation, learnerParticipation, interactionQuality}']
+  analysis_teachingQuality json [note: 'Teaching quality: {score, clarity, pacing, responsiveness, feedback}']
+  analysis_learningProgress json [note: 'Learning progress: {score, questionsAsked, conceptsGrasped, areasNeedingImprovement}']
+  analysis_overallRating decimal(3,1) [note: 'AI overall rating (0-10)']
+  analysis_recommendations json [note: 'Array of AI recommendations (strings)']
+
+  // Session statistics (embedded object)
+  statistics json [note: 'Session statistics object']
+  statistics_totalDuration integer [note: 'Total duration in seconds']
+  statistics_teacherSpeakTime integer [note: 'Teacher speak time in seconds']
+  statistics_learnerSpeakTime integer [note: 'Learner speak time in seconds']
+  statistics_silenceTime integer [note: 'Silence time in seconds']
+  statistics_wordsSpoken json [note: 'Word counts: {teacher, learner}']
+
+  // Processing status
+  processingStatus varchar(20) [default: 'pending', note: 'pending, processing, completed, failed']
+  processingError text [note: 'Processing error message if failed']
+
+  // Files
+  transcriptFileUrl varchar(500) [note: 'Full transcript file URL (if stored separately)']
+
+  // Recording metadata (embedded object)
+  recordingMetadata json [note: 'Recording metadata: {recordingId, recordingUrl, duration}']
+
+  generatedAt timestamp [default: `now()`, note: 'Summary generation timestamp']
+
+  // Timestamps
+  createdAt timestamp [default: `now()`, note: 'Creation']
+  updatedAt timestamp [default: `now()`, note: 'Last update']
+
+  Indexes {
+    session [unique]
+    processingStatus
+    'analysis.overallRating'
+    generatedAt
+  }
+
+  Note: '''
+  AI Features:
+  - Uses OpenAI GPT-4 for summary generation
+  - Analyzes engagement, teaching quality, and learning progress
+  - Generates actionable recommendations
+  - Automatically processed 1 minute after session ends
+  - Stores complete transcript and analysis
+  '''
+}
+
+// ==================== CROSS-DATABASE REFERENCES ====================
+
+// Admin panel has access to these user database collections:
+
+Table users {
+  _id ObjectId [pk, note: 'Primary Key (from main database)']
+  name varchar(50)
+  email varchar(255) [unique]
+  isActive boolean
+  isTeacher boolean
+  isVerified boolean
+  role varchar(20) [note: 'user, teacher, admin']
+  tokens decimal(10,2)
+  averageRating decimal(3,2)
+  totalSessionsTaught integer
+  totalSessionsLearned integer
+  createdAt timestamp
+  updatedAt timestamp
+
+  Note: '''
+  Admin Capabilities:
+  - View all users
+  - Update user profiles
+  - Ban/unban users
+  - Verify teachers
+  - Adjust token balances
+  - View complete user activity
+  '''
+}
+
+Table sessions {
+  _id ObjectId [pk, note: 'Primary Key (from main database)']
+  teacher ObjectId [ref: > users._id]
+  learner ObjectId [ref: > users._id]
+  skill varchar(100)
+  scheduledAt timestamp
+  status varchar(20)
+  tokensCharged decimal(10,2)
+  createdAt timestamp
+
+  Note: '''
+  Admin Capabilities:
+  - View all sessions
+  - Cancel sessions
+  - Issue refunds
+  - View session details
+  - Access recordings
+  '''
+}
+
+Table transactions {
+  _id ObjectId [pk, note: 'Primary Key (from main database)']
+  user ObjectId [ref: > users._id]
+  type varchar(10) [note: 'credit, debit']
+  amount decimal(10,2)
+  reason varchar(50)
+  balanceAfter decimal(10,2)
+  createdAt timestamp
+
+  Note: '''
+  Admin Capabilities:
+  - View all transactions
+  - Manual token adjustments
+  - Transaction analytics
+  - Refund processing
+  '''
+}
+
+Table payments {
+  _id ObjectId [pk, note: 'Primary Key (from main database)']
+  user ObjectId [ref: > users._id]
+  amount decimal(10,2)
+  tokensAmount integer
+  status varchar(20)
+  stripePaymentIntentId varchar(255)
+  createdAt timestamp
+
+  Note: '''
+  Admin Capabilities:
+  - View payment history
+  - Refund processing
+  - Payment analytics
+  - Stripe integration management
+  '''
+}
+
+Table skills {
+  _id ObjectId [pk, note: 'Primary Key (from main database)']
+  name varchar(100) [unique]
+  category varchar(100)
+  totalTeachers integer
+  popularityScore integer
+  isActive boolean
+  createdAt timestamp
+
+  Note: '''
+  Admin Capabilities:
+  - Create new skills
+  - Edit skill details
+  - Delete skills
+  - Manage categories
+  - View skill analytics
+  '''
+}
+
+Table notifications {
+  _id ObjectId [pk, note: 'Primary Key (from main database)']
+  recipient ObjectId [ref: > users._id]
+  type varchar(50)
+  message text
+  isRead boolean
+  createdAt timestamp
+
+  Note: '''
+  Admin Capabilities:
+  - View all notifications
+  - Send system-wide notifications
+  - Notification analytics
+  '''
+}
+
+Table recordings {
+  _id ObjectId [pk, note: 'Primary Key (from main database)']
+  session ObjectId [ref: - sessions._id]
+  videoUrl varchar(500)
+  status varchar(20)
+  duration integer
+  views integer
+  createdAt timestamp
+
+  Note: '''
+  Admin Capabilities:
+  - View all recordings
+  - Delete inappropriate content
+  - Recording analytics
+  - Storage management
+  '''
+}
+
+// ==================== RELATIONSHIPS SUMMARY ====================
+
+// Admin to Admin Collections
+Ref: admins._id < reports.assignedTo [note: 'Admin assigned to report']
+Ref: admins._id < reports.resolution.resolvedBy [note: 'Admin who resolved report']
+Ref: admins._id < system_notifications.createdBy [note: 'Admin who created notification']
+Ref: admins._id < system_settings.lastUpdatedBy [note: 'Admin who updated setting']
+Ref: admins._id < activity_logs.admin [note: 'Admin who performed action']
+Ref: admins._id < admins.createdBy [note: 'Admin who created this admin account']
+
+// Reports to User Database
+Ref: reports.reporter > users._id [note: 'User who submitted report']
+Ref: reports.reportedUser > users._id [note: 'Reported user']
+Ref: reports.reportedSession > sessions._id [note: 'Reported session']
+
+// AI Features Integration
+Ref: session_summaries.session - sessions._id [note: '1:1 relationship - AI-generated summary']
+
+// Cross-Database References
+Ref: users._id < sessions.teacher [note: 'User teaches sessions']
+Ref: users._id < sessions.learner [note: 'User learns in sessions']
+Ref: users._id < transactions.user [note: 'User transaction history']
+Ref: users._id < payments.user [note: 'User payment history']
+Ref: sessions._id - recordings.session [note: '1:1 session recording']
+
+// ==================== AI FEATURES CONFIGURATION ====================
+
+// Note: AI features are configured via environment variables and system settings
+
+// AI Models Used:
+// - OpenAI GPT-4 Turbo: Session summaries, recommendations, analytics
+// - OpenAI Moderation API: Content moderation
+// - OpenAI Whisper: Transcript generation
+// - Custom ML Models: Fraud detection, pricing optimization
+
+// AI Processing Queues:
+// - session-summaries: Process summaries asynchronously
+// - content-moderation: Auto-moderate reported content
+// - fraud-detection: Hourly fraud checks
+// - analytics-insights: Daily insight generation
+
+// ==================== ADMIN PANEL FEATURES ====================
+
+// Dashboard Metrics:
+// - Total Users (active/inactive/banned)
+// - Total Teachers (pending/verified/rejected)
+// - Active Sessions (today/this week/this month)
+// - Revenue (daily/weekly/monthly)
+// - Pending Reports (by priority)
+// - System Health (uptime, errors, performance)
+
+// AI-Powered Features:
+// ✅ AI Session Summaries - Auto-generate after each session
+// ✅ AI Content Moderation - Auto-flag inappropriate content
+// ✅ AI Skill Recommendations - Personalized user recommendations
+// ✅ AI Teacher Verification - Automated credential checking
+// ✅ AI Pricing Optimization - Dynamic token pricing
+// ✅ AI Fraud Detection - Pattern-based fraud alerts
+// ✅ AI Chatbot Support - Admin and user support
+// ✅ AI Analytics Insights - Automated insights and forecasts
+
+// ==================== NOTES ====================
+
+// Database Architecture:
+// - Main Database: MongoDB (User platform data)
+// - Admin Database: MongoDB (Admin-specific collections)
+// - Both databases share the same cluster for easy querying
+// - Admin panel has full read/write access to main database
+// - All admin actions are logged in activity_logs
+
+// Security:
+// - Admin passwords hashed with bcrypt (salt rounds: 12)
+// - Role-based access control (RBAC)
+// - Fine-grained permissions per admin role
+// - Complete audit trail of all admin actions
+// - IP and user agent tracking for security
+
+// AI Integration:
+// - OpenAI API key required
+// - Redis required for job queues
+// - Webhook endpoints for real-time processing
+// - Fallback to manual processing if AI fails
+// - AI confidence scores for all predictions
+
+// Performance:
+// - Indexed all foreign keys for fast joins
+// - Compound indexes for common query patterns
+// - TTL indexes for auto-cleanup where applicable
+// - Aggregation pipelines for analytics
+// - Redis caching for frequently accessed data

@@ -1,0 +1,715 @@
+{
+  "database": {
+    "name": "skillup",
+    "type": "MongoDB",
+    "version": "1.0"
+  },
+  "entities": [
+    {
+      "name": "Users",
+      "type": "table",
+      "attributes": [
+        { "name": "_id", "type": "ObjectId", "primaryKey": true },
+        { "name": "name", "type": "String", "required": true, "maxLength": 50 },
+        { "name": "email", "type": "String", "required": true, "unique": true },
+        { "name": "password", "type": "String", "required": true },
+        { "name": "avatar", "type": "String" },
+        { "name": "bio", "type": "String", "maxLength": 500 },
+        { "name": "country", "type": "String" },
+        { "name": "timeZone", "type": "String" },
+        { "name": "tokens", "type": "Number", "default": 50 },
+        { "name": "tokensEarned", "type": "Number", "default": 0 },
+        { "name": "tokensSpent", "type": "Number", "default": 0 },
+        { "name": "totalSessionsTaught", "type": "Number", "default": 0 },
+        { "name": "totalSessionsLearned", "type": "Number", "default": 0 },
+        {
+          "name": "averageRating",
+          "type": "Number",
+          "min": 0,
+          "max": 5,
+          "default": 0
+        },
+        { "name": "totalRatings", "type": "Number", "default": 0 },
+        { "name": "level", "type": "Number", "default": 1 },
+        { "name": "experience", "type": "Number", "default": 0 },
+        { "name": "isVerified", "type": "Boolean", "default": false },
+        { "name": "isTeacher", "type": "Boolean", "default": false },
+        { "name": "isActive", "type": "Boolean", "default": false },
+        {
+          "name": "role",
+          "type": "Enum",
+          "values": ["user", "teacher", "admin"],
+          "default": "user"
+        },
+        { "name": "createdAt", "type": "Date" },
+        { "name": "updatedAt", "type": "Date" }
+      ]
+    },
+    {
+      "name": "Skills",
+      "type": "table",
+      "attributes": [
+        { "name": "_id", "type": "ObjectId", "primaryKey": true },
+        { "name": "name", "type": "String", "required": true, "unique": true },
+        {
+          "name": "category",
+          "type": "Enum",
+          "required": true,
+          "values": [
+            "Programming & Tech",
+            "Design & Creative",
+            "Languages",
+            "Business & Finance",
+            "Health & Wellness",
+            "Music & Arts",
+            "Cooking & Culinary",
+            "Sports & Fitness",
+            "Photography & Video",
+            "Writing & Content",
+            "Marketing & Sales",
+            "Science & Math",
+            "Other"
+          ]
+        },
+        { "name": "description", "type": "String", "maxLength": 500 },
+        { "name": "icon", "type": "String", "default": "🎯" },
+        {
+          "name": "difficulty",
+          "type": "Enum",
+          "values": ["beginner", "intermediate", "advanced", "expert"],
+          "default": "beginner"
+        },
+        { "name": "totalTeachers", "type": "Number", "default": 0 },
+        { "name": "totalLearners", "type": "Number", "default": 0 },
+        {
+          "name": "averageRating",
+          "type": "Number",
+          "min": 0,
+          "max": 5,
+          "default": 0
+        },
+        { "name": "popularityScore", "type": "Number", "default": 0 },
+        { "name": "isActive", "type": "Boolean", "default": true },
+        { "name": "createdAt", "type": "Date" },
+        { "name": "updatedAt", "type": "Date" }
+      ]
+    },
+    {
+      "name": "Sessions",
+      "type": "table",
+      "attributes": [
+        { "name": "_id", "type": "ObjectId", "primaryKey": true },
+        {
+          "name": "teacherId",
+          "type": "ObjectId",
+          "required": true,
+          "foreignKey": "Users._id"
+        },
+        {
+          "name": "learnerId",
+          "type": "ObjectId",
+          "required": true,
+          "foreignKey": "Users._id"
+        },
+        { "name": "skill", "type": "String", "required": true },
+        { "name": "title", "type": "String", "required": true },
+        { "name": "scheduledAt", "type": "Date", "required": true },
+        {
+          "name": "duration",
+          "type": "Number",
+          "required": true,
+          "default": 60
+        },
+        { "name": "endTime", "type": "Date" },
+        {
+          "name": "sessionType",
+          "type": "Enum",
+          "values": ["one-on-one", "group", "workshop"],
+          "default": "one-on-one"
+        },
+        { "name": "tokensCharged", "type": "Number", "default": 0 },
+        {
+          "name": "status",
+          "type": "Enum",
+          "values": [
+            "scheduled",
+            "in-progress",
+            "completed",
+            "cancelled",
+            "no-show"
+          ],
+          "default": "scheduled"
+        },
+        { "name": "createdAt", "type": "Date" },
+        { "name": "updatedAt", "type": "Date" }
+      ]
+    },
+    {
+      "name": "Transactions",
+      "type": "table",
+      "attributes": [
+        { "name": "_id", "type": "ObjectId", "primaryKey": true },
+        {
+          "name": "userId",
+          "type": "ObjectId",
+          "required": true,
+          "foreignKey": "Users._id"
+        },
+        {
+          "name": "type",
+          "type": "Enum",
+          "required": true,
+          "values": ["credit", "debit"]
+        },
+        { "name": "amount", "type": "Number", "required": true },
+        {
+          "name": "reason",
+          "type": "Enum",
+          "required": true,
+          "values": [
+            "purchase",
+            "session_teaching",
+            "session_learning",
+            "referral",
+            "challenge",
+            "streak",
+            "admin_adjustment",
+            "refund",
+            "welcome_bonus"
+          ]
+        },
+        {
+          "name": "sessionId",
+          "type": "ObjectId",
+          "foreignKey": "Sessions._id"
+        },
+        {
+          "name": "paymentId",
+          "type": "ObjectId",
+          "foreignKey": "Payments._id"
+        },
+        { "name": "balanceAfter", "type": "Number", "required": true },
+        { "name": "createdAt", "type": "Date" }
+      ]
+    },
+    {
+      "name": "Payments",
+      "type": "table",
+      "attributes": [
+        { "name": "_id", "type": "ObjectId", "primaryKey": true },
+        {
+          "name": "userId",
+          "type": "ObjectId",
+          "required": true,
+          "foreignKey": "Users._id"
+        },
+        { "name": "amount", "type": "Number", "required": true },
+        { "name": "currency", "type": "String", "default": "USD" },
+        { "name": "tokensAmount", "type": "Number", "required": true },
+        {
+          "name": "packageType",
+          "type": "Enum",
+          "required": true,
+          "values": ["basic", "pro", "premium", "custom"]
+        },
+        {
+          "name": "status",
+          "type": "Enum",
+          "values": [
+            "pending",
+            "processing",
+            "succeeded",
+            "failed",
+            "refunded"
+          ],
+          "default": "pending"
+        },
+        { "name": "receiptNumber", "type": "String", "unique": true },
+        { "name": "createdAt", "type": "Date" }
+      ]
+    },
+    {
+      "name": "Conversations",
+      "type": "table",
+      "attributes": [
+        { "name": "_id", "type": "ObjectId", "primaryKey": true },
+        { "name": "lastMessageAt", "type": "Date" },
+        {
+          "name": "type",
+          "type": "Enum",
+          "values": ["direct", "group"],
+          "default": "direct"
+        },
+        { "name": "isActive", "type": "Boolean", "default": true },
+        { "name": "createdAt", "type": "Date" }
+      ]
+    },
+    {
+      "name": "Messages",
+      "type": "table",
+      "attributes": [
+        { "name": "_id", "type": "ObjectId", "primaryKey": true },
+        {
+          "name": "conversationId",
+          "type": "ObjectId",
+          "required": true,
+          "foreignKey": "Conversations._id"
+        },
+        {
+          "name": "senderId",
+          "type": "ObjectId",
+          "required": true,
+          "foreignKey": "Users._id"
+        },
+        {
+          "name": "content",
+          "type": "String",
+          "required": true,
+          "maxLength": 2000
+        },
+        {
+          "name": "messageType",
+          "type": "Enum",
+          "values": ["text", "image", "file", "session-request", "system"],
+          "default": "text"
+        },
+        { "name": "createdAt", "type": "Date" }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "type": "table",
+      "attributes": [
+        { "name": "_id", "type": "ObjectId", "primaryKey": true },
+        {
+          "name": "recipientId",
+          "type": "ObjectId",
+          "required": true,
+          "foreignKey": "Users._id"
+        },
+        { "name": "senderId", "type": "ObjectId", "foreignKey": "Users._id" },
+        {
+          "name": "type",
+          "type": "Enum",
+          "required": true,
+          "values": [
+            "session_booked",
+            "session_cancelled",
+            "session_reminder_24h",
+            "session_reminder_1h",
+            "session_starting",
+            "session_started",
+            "session_ended",
+            "session_rated",
+            "recording_ready",
+            "recording_expiring",
+            "tokens_received",
+            "tokens_low",
+            "new_message",
+            "profile_viewed",
+            "new_follower",
+            "teacher_approved",
+            "system",
+            "admin"
+          ]
+        },
+        { "name": "title", "type": "String", "required": true },
+        { "name": "message", "type": "String", "required": true },
+        {
+          "name": "sessionId",
+          "type": "ObjectId",
+          "foreignKey": "Sessions._id"
+        },
+        { "name": "isRead", "type": "Boolean", "default": false },
+        { "name": "createdAt", "type": "Date" }
+      ]
+    },
+    {
+      "name": "Recordings",
+      "type": "table",
+      "attributes": [
+        { "name": "_id", "type": "ObjectId", "primaryKey": true },
+        {
+          "name": "sessionId",
+          "type": "ObjectId",
+          "required": true,
+          "unique": true,
+          "foreignKey": "Sessions._id"
+        },
+        {
+          "name": "teacherId",
+          "type": "ObjectId",
+          "required": true,
+          "foreignKey": "Users._id"
+        },
+        {
+          "name": "learnerId",
+          "type": "ObjectId",
+          "required": true,
+          "foreignKey": "Users._id"
+        },
+        { "name": "title", "type": "String", "required": true },
+        { "name": "videoUrl", "type": "String" },
+        {
+          "name": "status",
+          "type": "Enum",
+          "values": ["recording", "processing", "ready", "failed", "deleted"],
+          "default": "recording"
+        },
+        { "name": "duration", "type": "Number", "default": 0 },
+        { "name": "views", "type": "Number", "default": 0 },
+        { "name": "expiresAt", "type": "Date" },
+        { "name": "createdAt", "type": "Date" }
+      ]
+    },
+    {
+      "name": "Availabilities",
+      "type": "table",
+      "attributes": [
+        { "name": "_id", "type": "ObjectId", "primaryKey": true },
+        {
+          "name": "teacherId",
+          "type": "ObjectId",
+          "required": true,
+          "foreignKey": "Users._id"
+        },
+        {
+          "name": "dayOfWeek",
+          "type": "Number",
+          "required": true,
+          "min": 0,
+          "max": 6
+        },
+        { "name": "isActive", "type": "Boolean", "default": true },
+        { "name": "timezone", "type": "String", "default": "UTC" },
+        { "name": "isRecurring", "type": "Boolean", "default": true },
+        { "name": "createdAt", "type": "Date" }
+      ]
+    },
+    {
+      "name": "SessionSummaries",
+      "type": "table",
+      "attributes": [
+        { "name": "_id", "type": "ObjectId", "primaryKey": true },
+        {
+          "name": "sessionId",
+          "type": "ObjectId",
+          "required": true,
+          "unique": true,
+          "foreignKey": "Sessions._id"
+        },
+        { "name": "summaryOverview", "type": "String" },
+        {
+          "name": "processingStatus",
+          "type": "Enum",
+          "values": ["pending", "processing", "completed", "failed"],
+          "default": "pending"
+        },
+        { "name": "overallRating", "type": "Number" },
+        { "name": "createdAt", "type": "Date" }
+      ]
+    },
+    {
+      "name": "Admins",
+      "type": "table",
+      "attributes": [
+        { "name": "_id", "type": "ObjectId", "primaryKey": true },
+        { "name": "name", "type": "String", "required": true },
+        { "name": "email", "type": "String", "required": true, "unique": true },
+        { "name": "password", "type": "String", "required": true },
+        {
+          "name": "role",
+          "type": "Enum",
+          "values": ["super_admin", "moderator", "support"],
+          "default": "moderator"
+        },
+        { "name": "isActive", "type": "Boolean", "default": true },
+        { "name": "createdAt", "type": "Date" }
+      ]
+    },
+    {
+      "name": "ActivityLogs",
+      "type": "table",
+      "attributes": [
+        { "name": "_id", "type": "ObjectId", "primaryKey": true },
+        {
+          "name": "adminId",
+          "type": "ObjectId",
+          "required": true,
+          "foreignKey": "Admins._id"
+        },
+        { "name": "action", "type": "String", "required": true },
+        { "name": "targetType", "type": "String" },
+        {
+          "name": "status",
+          "type": "Enum",
+          "values": ["success", "failed"],
+          "default": "success"
+        },
+        { "name": "createdAt", "type": "Date" }
+      ]
+    },
+    {
+      "name": "Reports",
+      "type": "table",
+      "attributes": [
+        { "name": "_id", "type": "ObjectId", "primaryKey": true },
+        {
+          "name": "reporterId",
+          "type": "ObjectId",
+          "required": true,
+          "foreignKey": "Users._id"
+        },
+        {
+          "name": "reportedUserId",
+          "type": "ObjectId",
+          "foreignKey": "Users._id"
+        },
+        {
+          "name": "type",
+          "type": "Enum",
+          "required": true,
+          "values": [
+            "user",
+            "session",
+            "review",
+            "spam",
+            "fraud",
+            "inappropriate",
+            "other"
+          ]
+        },
+        { "name": "reason", "type": "String", "required": true },
+        {
+          "name": "status",
+          "type": "Enum",
+          "values": ["pending", "under_review", "resolved", "dismissed"],
+          "default": "pending"
+        },
+        {
+          "name": "assignedToId",
+          "type": "ObjectId",
+          "foreignKey": "Admins._id"
+        },
+        { "name": "createdAt", "type": "Date" }
+      ]
+    },
+    {
+      "name": "SystemNotifications",
+      "type": "table",
+      "attributes": [
+        { "name": "_id", "type": "ObjectId", "primaryKey": true },
+        { "name": "title", "type": "String", "required": true },
+        { "name": "message", "type": "String", "required": true },
+        {
+          "name": "type",
+          "type": "Enum",
+          "values": [
+            "announcement",
+            "maintenance",
+            "update",
+            "promotion",
+            "warning",
+            "info"
+          ],
+          "default": "info"
+        },
+        {
+          "name": "targetAudience",
+          "type": "Enum",
+          "values": [
+            "all",
+            "users",
+            "teachers",
+            "verified_teachers",
+            "new_users"
+          ],
+          "default": "all"
+        },
+        {
+          "name": "status",
+          "type": "Enum",
+          "values": ["draft", "scheduled", "sent", "cancelled"],
+          "default": "draft"
+        },
+        {
+          "name": "createdById",
+          "type": "ObjectId",
+          "required": true,
+          "foreignKey": "Admins._id"
+        },
+        { "name": "createdAt", "type": "Date" }
+      ]
+    },
+    {
+      "name": "SystemSettings",
+      "type": "table",
+      "attributes": [
+        { "name": "_id", "type": "ObjectId", "primaryKey": true },
+        { "name": "key", "type": "String", "required": true, "unique": true },
+        { "name": "value", "type": "Mixed", "required": true },
+        {
+          "name": "category",
+          "type": "Enum",
+          "values": [
+            "general",
+            "tokens",
+            "sessions",
+            "email",
+            "security",
+            "features"
+          ],
+          "default": "general"
+        },
+        {
+          "name": "lastUpdatedById",
+          "type": "ObjectId",
+          "foreignKey": "Admins._id"
+        },
+        { "name": "createdAt", "type": "Date" }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "from": "Users",
+      "to": "Sessions",
+      "type": "one-to-many",
+      "description": "User can teach many sessions",
+      "foreignKey": "teacherId"
+    },
+    {
+      "from": "Users",
+      "to": "Sessions",
+      "type": "one-to-many",
+      "description": "User can learn in many sessions",
+      "foreignKey": "learnerId"
+    },
+    {
+      "from": "Sessions",
+      "to": "Recordings",
+      "type": "one-to-one",
+      "description": "Each session can have one recording",
+      "foreignKey": "sessionId"
+    },
+    {
+      "from": "Sessions",
+      "to": "SessionSummaries",
+      "type": "one-to-one",
+      "description": "Each session can have one summary",
+      "foreignKey": "sessionId"
+    },
+    {
+      "from": "Users",
+      "to": "Transactions",
+      "type": "one-to-many",
+      "description": "User can have many transactions",
+      "foreignKey": "userId"
+    },
+    {
+      "from": "Sessions",
+      "to": "Transactions",
+      "type": "one-to-many",
+      "description": "Session can have many transactions",
+      "foreignKey": "sessionId"
+    },
+    {
+      "from": "Users",
+      "to": "Payments",
+      "type": "one-to-many",
+      "description": "User can make many payments",
+      "foreignKey": "userId"
+    },
+    {
+      "from": "Payments",
+      "to": "Transactions",
+      "type": "one-to-many",
+      "description": "Payment can result in many transactions",
+      "foreignKey": "paymentId"
+    },
+    {
+      "from": "Users",
+      "to": "Conversations",
+      "type": "many-to-many",
+      "description": "Users can participate in many conversations",
+      "through": "ConversationParticipants"
+    },
+    {
+      "from": "Conversations",
+      "to": "Messages",
+      "type": "one-to-many",
+      "description": "Conversation can have many messages",
+      "foreignKey": "conversationId"
+    },
+    {
+      "from": "Users",
+      "to": "Messages",
+      "type": "one-to-many",
+      "description": "User can send many messages",
+      "foreignKey": "senderId"
+    },
+    {
+      "from": "Users",
+      "to": "Notifications",
+      "type": "one-to-many",
+      "description": "User can receive many notifications",
+      "foreignKey": "recipientId"
+    },
+    {
+      "from": "Sessions",
+      "to": "Notifications",
+      "type": "one-to-many",
+      "description": "Session can trigger many notifications",
+      "foreignKey": "sessionId"
+    },
+    {
+      "from": "Users",
+      "to": "Availabilities",
+      "type": "one-to-many",
+      "description": "Teacher can have many availability slots",
+      "foreignKey": "teacherId"
+    },
+    {
+      "from": "Users",
+      "to": "Users",
+      "type": "many-to-many",
+      "description": "Users can follow each other",
+      "through": "UserFollowers"
+    },
+    {
+      "from": "Admins",
+      "to": "ActivityLogs",
+      "type": "one-to-many",
+      "description": "Admin can have many activity logs",
+      "foreignKey": "adminId"
+    },
+    {
+      "from": "Users",
+      "to": "Reports",
+      "type": "one-to-many",
+      "description": "User can create many reports",
+      "foreignKey": "reporterId"
+    },
+    {
+      "from": "Admins",
+      "to": "Reports",
+      "type": "one-to-many",
+      "description": "Admin can be assigned many reports",
+      "foreignKey": "assignedToId"
+    },
+    {
+      "from": "Admins",
+      "to": "SystemNotifications",
+      "type": "one-to-many",
+      "description": "Admin can create many system notifications",
+      "foreignKey": "createdById"
+    },
+    {
+      "from": "Admins",
+      "to": "SystemSettings",
+      "type": "one-to-many",
+      "description": "Admin can update many settings",
+      "foreignKey": "lastUpdatedById"
+    }
+  ]
+}

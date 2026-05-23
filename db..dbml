@@ -1,0 +1,727 @@
+// skillup Database Schema - Complete Version
+// All relationships properly connected
+// Ready for https://dbdiagram.io/
+
+// ============================================
+// USER COLLECTIONS
+// ============================================
+
+Table users {
+  _id ObjectId [pk]
+  name varchar(50)
+  email varchar(255) [unique]
+  password varchar(255) [note: 'Bcrypt hashed']
+  avatar varchar(500)
+  bio text
+  country varchar(100)
+  timeZone varchar(100)
+  languages json [note: 'Array of language codes']
+  
+  // Token System
+  tokens integer [default: 50]
+  tokensEarned integer [default: 0]
+  tokensSpent integer [default: 0]
+  
+  // Statistics
+  totalSessionsTaught integer [default: 0]
+  totalSessionsLearned integer [default: 0]
+  averageRating decimal(3,2) [default: 0]
+  totalRatings integer [default: 0]
+  
+  // Gamification
+  level integer [default: 1]
+  experience integer [default: 0]
+  badges json [note: 'Array of badge objects']
+  streak json [note: 'Current streak object']
+  
+  // Account Status
+  isVerified boolean [default: false]
+  isTeacher boolean [default: false]
+  isActive boolean [default: false]
+  role varchar(20) [default: 'user', note: 'user, teacher, admin']
+  
+  // Security
+  verificationToken varchar(255)
+  verificationExpire timestamp
+  resetPasswordToken varchar(255)
+  resetPasswordExpire timestamp
+  
+  // Preferences
+  preferences json [note: 'User preferences object']
+  
+  // Social
+  followers json [note: 'Array of user IDs']
+  following json [note: 'Array of user IDs']
+  
+  // Timestamps
+  createdAt timestamp [default: `now()`]
+  updatedAt timestamp [default: `now()`]
+  
+  Indexes {
+    email [unique]
+    (isTeacher, isActive)
+    (averageRating, totalRatings)
+    level
+    createdAt
+  }
+}
+
+Table skills {
+  _id ObjectId [pk]
+  name varchar(100) [unique]
+  category varchar(50) [note: '13 categories']
+  description text
+  icon varchar(10) [default: '🎯']
+  difficulty varchar(20) [note: 'beginner, intermediate, advanced, expert']
+  tags json [note: 'Search tags array']
+  
+  // Statistics
+  totalTeachers integer [default: 0]
+  totalLearners integer [default: 0]
+  averageRating decimal(3,2) [default: 0]
+  popularityScore integer [default: 0]
+  
+  // Status
+  isActive boolean [default: true]
+  
+  // Timestamps
+  createdAt timestamp [default: `now()`]
+  updatedAt timestamp [default: `now()`]
+  
+  Indexes {
+    name [unique]
+    (category, popularityScore)
+  }
+}
+
+Table user_skills {
+  _id ObjectId [pk]
+  user ObjectId [note: 'User reference']
+  skill ObjectId [note: 'Skill reference']
+  type varchar(10) [note: 'teach or learn']
+  proficiencyLevel varchar(20) [default: 'beginner', note: 'beginner, intermediate, advanced, expert']
+  yearsOfExperience integer [default: 0]
+  isVerified boolean [default: false, note: 'Admin verified']
+  
+  // Timestamps
+  createdAt timestamp [default: `now()`]
+  updatedAt timestamp [default: `now()`]
+  
+  Indexes {
+    (user, skill, type) [unique]
+    user
+    skill
+    type
+  }
+}
+
+Table sessions {
+  _id ObjectId [pk]
+  teacher ObjectId [note: 'Teacher user reference']
+  learner ObjectId [note: 'Learner user reference']
+  skill ObjectId [note: 'Skill reference']
+  skillCategory varchar(100)
+  
+  // Session Details
+  title varchar(200)
+  description text
+  
+  // Scheduling
+  scheduledAt timestamp
+  duration integer [default: 60, note: 'Minutes']
+  endTime timestamp [note: 'Auto-calculated']
+  
+  // Type
+  sessionType varchar(20) [note: 'one-on-one, group, workshop']
+  isSkillExchange boolean [default: false]
+  
+  // Pricing
+  tokensCharged integer [default: 0]
+  
+  // Video
+  videoRoomId varchar(255)
+  videoToken varchar(500)
+  agoraChannel varchar(255)
+  
+  // Status
+  status varchar(20) [default: 'scheduled', note: 'scheduled, in-progress, completed, cancelled, no-show']
+  
+  // Ratings
+  teacherRating json [note: 'Embedded rating object']
+  learnerRating json [note: 'Embedded rating object']
+  
+  // Notes
+  teacherNotes text
+  learnerNotes text
+  
+  // Attendance
+  teacherJoinedAt timestamp
+  learnerJoinedAt timestamp
+  actualStartTime timestamp
+  actualEndTime timestamp
+  
+  // Cancellation
+  cancelledBy ObjectId [note: 'User who cancelled']
+  cancellationReason text
+  cancelledAt timestamp
+  
+  // Flags
+  remindersSent boolean [default: false]
+  
+  // Timestamps
+  createdAt timestamp [default: `now()`]
+  updatedAt timestamp [default: `now()`]
+  
+  Indexes {
+    (teacher, scheduledAt)
+    (learner, scheduledAt)
+    (status, scheduledAt)
+    agoraChannel
+    videoRoomId
+  }
+}
+
+Table transactions {
+  _id ObjectId [pk]
+  user ObjectId [note: 'User reference']
+  type varchar(20) [note: 'credit, debit']
+  amount integer
+  reason varchar(30) [note: 'purchase, session_teaching, session_learning, referral, etc']
+  description text
+  
+  // Related Entities
+  session ObjectId [note: 'Related session']
+  payment ObjectId [note: 'Related payment']
+  
+  // Balance Tracking
+  balanceBefore integer
+  balanceAfter integer
+  
+  // Metadata
+  metadata json
+  
+  // Timestamps
+  createdAt timestamp [default: `now()`]
+  updatedAt timestamp [default: `now()`]
+  
+  Indexes {
+    (user, createdAt)
+    (type, reason)
+    session
+    payment
+  }
+}
+
+Table payments {
+  _id ObjectId [pk]
+  user ObjectId [note: 'User reference']
+  amount decimal(10,2)
+  currency varchar(3) [default: 'USD']
+  tokensAmount integer
+  packageType varchar(20) [note: 'basic, pro, premium, custom']
+  
+  // Stripe
+  stripePaymentIntentId varchar(255) [unique]
+  stripePaymentMethodId varchar(255)
+  stripeCustomerId varchar(255)
+  
+  // Status
+  status varchar(20) [note: 'pending, processing, succeeded, failed, refunded']
+  paymentMethod varchar(20) [note: 'stripe, paypal, admin']
+  
+  // Receipt
+  receiptUrl varchar(500)
+  receiptNumber varchar(50) [unique]
+  
+  // Refund
+  refundReason text
+  refundedAt timestamp
+  refundAmount decimal(10,2)
+  
+  // Additional
+  metadata json
+  failureReason text
+  
+  // Timestamps
+  createdAt timestamp [default: `now()`]
+  updatedAt timestamp [default: `now()`]
+  
+  Indexes {
+    (user, createdAt)
+    status
+    stripePaymentIntentId [unique]
+    receiptNumber [unique]
+  }
+}
+
+Table conversations {
+  _id ObjectId [pk]
+  participants json [note: 'Array of user IDs']
+  type varchar(20) [default: 'direct', note: 'direct, group']
+  title varchar(100)
+  lastMessage ObjectId [note: 'Last message reference']
+  unreadCount json [note: 'Map of user ID to unread count']
+  
+  // Metadata
+  metadata json
+  isArchived boolean [default: false]
+  
+  // Timestamps
+  createdAt timestamp [default: `now()`]
+  updatedAt timestamp [default: `now()`]
+  
+  Indexes {
+    participants
+    (lastMessage, updatedAt)
+  }
+}
+
+Table messages {
+  _id ObjectId [pk]
+  conversation ObjectId [note: 'Conversation reference']
+  sender ObjectId [note: 'Sender user reference']
+  content text
+  type varchar(20) [default: 'text', note: 'text, image, file, system']
+  
+  // Read Status
+  readBy json [note: 'Array of user IDs who read']
+  
+  // Attachments
+  attachments json [note: 'Array of file URLs']
+  
+  // Status
+  isEdited boolean [default: false]
+  isDeleted boolean [default: false]
+  editedAt timestamp
+  
+  // Timestamps
+  createdAt timestamp [default: `now()`]
+  updatedAt timestamp [default: `now()`]
+  
+  Indexes {
+    (conversation, createdAt)
+    sender
+  }
+}
+
+Table notifications {
+  _id ObjectId [pk]
+  recipient ObjectId [note: 'Recipient user reference']
+  type varchar(50) [note: '20+ notification types']
+  title varchar(200)
+  message text
+  
+  // Related Entities
+  relatedSession ObjectId [note: 'Related session']
+  relatedRecording ObjectId [note: 'Related recording']
+  relatedUser ObjectId [note: 'Related user']
+  
+  // Status
+  isRead boolean [default: false]
+  priority varchar(10) [default: 'normal', note: 'low, normal, high, critical']
+  
+  // Action
+  actionUrl varchar(500)
+  actionText varchar(50)
+  
+  // Scheduling
+  scheduledFor timestamp
+  expiresAt timestamp
+  
+  // Timestamps
+  createdAt timestamp [default: `now()`]
+  updatedAt timestamp [default: `now()`]
+  
+  Indexes {
+    (recipient, isRead)
+    (recipient, createdAt)
+    priority
+  }
+}
+
+Table recordings {
+  _id ObjectId [pk]
+  session ObjectId [note: 'Session reference']
+  skill ObjectId [note: 'Skill reference']
+  videoUrl varchar(500)
+  thumbnailUrl varchar(500)
+  duration integer [note: 'Seconds']
+  
+  // Cloud Storage
+  storageProvider varchar(20) [default: 'cloudinary', note: 'cloudinary, s3, agora']
+  storageKey varchar(500)
+  
+  // Status
+  status varchar(20) [default: 'processing', note: 'processing, ready, failed, deleted']
+  processingProgress integer [default: 0, note: '0-100']
+  
+  // AI Features
+  hasTranscription boolean [default: false]
+  hasSummary boolean [default: false]
+  
+  // Analytics
+  viewCount integer [default: 0]
+  lastViewedAt timestamp
+  viewHistory json [note: 'Array of view records']
+  
+  // Timestamps
+  createdAt timestamp [default: `now()`]
+  updatedAt timestamp [default: `now()`]
+  
+  Indexes {
+    session [unique]
+    (status, createdAt)
+    storageKey
+    videoUrl
+    (hasTranscription, hasSummary)
+  }
+}
+
+Table availability {
+  _id ObjectId [pk]
+  teacher ObjectId [note: 'Teacher user reference']
+  dayOfWeek integer [note: '0-6, 0=Sunday']
+  timeSlots json [note: 'Array of time slot objects']
+  
+  // Timezone
+  timeZone varchar(100)
+  
+  // Overrides
+  overrides json [note: 'Array of override objects']
+  
+  // Status
+  isActive boolean [default: true]
+  
+  // Timestamps
+  createdAt timestamp [default: `now()`]
+  updatedAt timestamp [default: `now()`]
+  
+  Indexes {
+    (teacher, dayOfWeek)
+    (teacher, isActive)
+    teacher
+  }
+}
+
+Table user_verifications {
+  _id ObjectId [pk]
+  user ObjectId [note: 'User reference']
+  otp ObjectId [note: 'OTP reference']
+  type varchar(20) [note: 'email_verify, phone_verify, password_reset']
+  verifiedAt timestamp
+  
+  createdAt timestamp [default: `now()`]
+  
+  Indexes {
+    user
+    otp
+    type
+  }
+}
+
+Table otps {
+  _id ObjectId [pk]
+  identifier varchar(255) [note: 'Email or phone number']
+  user ObjectId [note: 'Optional user reference - null during signup']
+  otp varchar(6)
+  type varchar(20) [note: 'signup, login, reset, verify']
+  
+  // Status
+  isUsed boolean [default: false]
+  attempts integer [default: 0]
+  
+  // Expiry
+  expiresAt timestamp
+  
+  // Timestamps
+  createdAt timestamp [default: `now()`]
+  
+  Indexes {
+    (identifier, type)
+    user
+    otp
+    expiresAt
+  }
+}
+
+// Add this in RELATIONSHIPS section:
+
+Table activation_tokens {
+  _id ObjectId [pk]
+  user ObjectId [note: 'User reference']
+  token varchar(255) [unique]
+  
+  // Status
+  isUsed boolean [default: false]
+  
+  // Expiry
+  expiresAt timestamp
+  
+  // Timestamps
+  createdAt timestamp [default: `now()`]
+  
+  Indexes {
+    user
+    token [unique]
+    expiresAt
+  }
+}
+
+Table session_summaries {
+  _id ObjectId [pk]
+  session ObjectId [note: 'Session reference']
+  transcript json [note: 'Array of transcript segments']
+  summary json [note: 'AI-generated summary object']
+  analysis json [note: 'AI analysis object']
+  statistics json [note: 'Session statistics']
+  
+  // AI Processing
+  aiModel varchar(50) [default: 'gpt-4-turbo']
+  processingStatus varchar(20) [default: 'pending', note: 'pending, processing, completed, failed']
+  processingTime integer [note: 'Seconds']
+  
+  // Status
+  isPublished boolean [default: true]
+  
+  // Timestamps
+  generatedAt timestamp [default: `now()`]
+  createdAt timestamp [default: `now()`]
+  updatedAt timestamp [default: `now()`]
+  
+  Indexes {
+    session [unique]
+    (processingStatus, generatedAt)
+    aiModel
+  }
+}
+
+// ============================================
+// ADMIN COLLECTIONS
+// ============================================
+
+Table admins {
+  _id ObjectId [pk]
+  name varchar(100)
+  email varchar(255) [unique]
+  password varchar(255) [note: 'Bcrypt (salt: 12)']
+  role varchar(20) [note: 'super_admin, moderator, support']
+  
+  // Permissions
+  permissions json [note: 'Embedded permissions object']
+  
+  // Profile
+  avatar varchar(500)
+  isActive boolean [default: true]
+  lastLogin timestamp
+  
+  // Login History
+  loginHistory json [note: 'Array of login records']
+  
+  // Audit
+  createdBy ObjectId [note: 'Admin who created this admin']
+  
+  // Timestamps
+  createdAt timestamp [default: `now()`]
+  updatedAt timestamp [default: `now()`]
+  
+  Indexes {
+    email [unique]
+    (role, isActive)
+    lastLogin
+  }
+}
+
+Table reports {
+  _id ObjectId [pk]
+  reporter ObjectId [note: 'User who reported']
+  reportedUser ObjectId [note: 'User being reported']
+  reportedSession ObjectId [note: 'Session being reported']
+  
+  // Report Info
+  type varchar(20) [note: 'user, session, spam, fraud, inappropriate, other']
+  reason varchar(200)
+  description text
+  evidence json [note: 'Screenshot URLs array']
+  
+  // AI Analysis
+  aiAnalysis json [note: 'AI moderation analysis']
+  
+  // Status
+  status varchar(20) [default: 'pending', note: 'pending, under_review, resolved, dismissed']
+  priority varchar(20) [default: 'medium', note: 'low, medium, high, critical']
+  assignedTo ObjectId [note: 'Admin assigned to handle']
+  
+  // Resolution
+  resolution json [note: 'Resolution object']
+  
+  // Admin Notes
+  adminNotes json [note: 'Array of admin note objects']
+  
+  // Timestamps
+  createdAt timestamp [default: `now()`]
+  updatedAt timestamp [default: `now()`]
+  
+  Indexes {
+    (status, priority)
+    reporter
+    reportedUser
+    assignedTo
+    createdAt
+  }
+}
+
+Table system_notifications {
+  _id ObjectId [pk]
+  title varchar(200)
+  message text
+  type varchar(20) [note: 'announcement, maintenance, update, promotion, warning, info']
+  targetAudience varchar(30) [note: 'all, users, teachers, verified_teachers, new_users']
+  priority varchar(10) [default: 'medium', note: 'low, medium, high']
+  
+  // Channels
+  channels json [note: 'Channels object (inApp, email, push)']
+  
+  // Scheduling
+  scheduledFor timestamp
+  expiresAt timestamp
+  
+  // Status
+  status varchar(20) [default: 'draft', note: 'draft, scheduled, sent, cancelled']
+  sentAt timestamp
+  sentTo integer [default: 0]
+  
+  // Read Tracking
+  readBy json [note: 'Array of read records']
+  
+  // Metadata
+  metadata json
+  
+  // Audit
+  createdBy ObjectId [note: 'Admin who created']
+  
+  // Timestamps
+  createdAt timestamp [default: `now()`]
+  updatedAt timestamp [default: `now()`]
+  
+  Indexes {
+    (status, scheduledFor)
+    targetAudience
+    priority
+    createdBy
+  }
+}
+
+Table system_settings {
+  _id ObjectId [pk]
+  key varchar(100) [unique]
+  value json
+  category varchar(30) [note: 'general, tokens, sessions, email, security, features']
+  description text
+  lastUpdatedBy ObjectId [note: 'Admin who last updated']
+  
+  // Timestamps
+  createdAt timestamp [default: `now()`]
+  updatedAt timestamp [default: `now()`]
+  
+  Indexes {
+    key [unique]
+    category
+    lastUpdatedBy
+  }
+}
+
+Table activity_logs {
+  _id ObjectId [pk]
+  admin ObjectId [note: 'Admin who performed action']
+  action varchar(50) [note: '25+ action types']
+  targetType varchar(30) [note: 'user, teacher, skill, session, etc']
+  targetId ObjectId
+  details json
+  ipAddress varchar(45)
+  userAgent text
+  status varchar(20) [default: 'success', note: 'success, failed']
+  
+  // Timestamps
+  createdAt timestamp [default: `now()`]
+  updatedAt timestamp [default: `now()`]
+  
+  Indexes {
+    (admin, createdAt)
+    action
+    targetType
+    (targetType, targetId)
+    status
+  }
+}
+
+// ============================================
+// RELATIONSHIPS
+// ============================================
+
+// User Skills Junction Table Relationships
+Ref: user_skills.user > users._id
+Ref: user_skills.skill > skills._id
+
+// Session Relationships
+Ref: sessions.teacher > users._id
+Ref: sessions.learner > users._id
+Ref: sessions.skill > skills._id
+Ref: sessions.cancelledBy > users._id
+
+// Transaction Relationships
+Ref: transactions.user > users._id
+Ref: transactions.session > sessions._id
+Ref: transactions.payment > payments._id
+
+// Payment Relationships
+Ref: payments.user > users._id
+
+// Messaging Relationships
+Ref: messages.conversation > conversations._id
+Ref: messages.sender > users._id
+Ref: conversations.lastMessage > messages._id
+
+// Notification Relationships
+Ref: notifications.recipient > users._id
+Ref: notifications.relatedUser > users._id
+Ref: notifications.relatedSession > sessions._id
+Ref: notifications.relatedRecording > recordings._id
+
+// Recording Relationships
+Ref: recordings.session - sessions._id
+Ref: recordings.skill > skills._id
+
+// Availability Relationships
+Ref: availability.teacher > users._id
+
+// Activation Token Relationships
+Ref: activation_tokens.user > users._id
+
+// Session Summary Relationships
+Ref: session_summaries.session - sessions._id
+
+// Report Relationships
+Ref: reports.reporter > users._id
+Ref: reports.reportedUser > users._id
+Ref: reports.reportedSession > sessions._id
+Ref: reports.assignedTo > admins._id
+
+// System Notification Relationships
+Ref: system_notifications.createdBy > admins._id
+
+// System Settings Relationships
+Ref: system_settings.lastUpdatedBy > admins._id
+
+// Activity Log Relationships
+Ref: activity_logs.admin > admins._id
+
+// Admin Self-Reference
+Ref: admins.createdBy > admins._id
+
+Ref: user_verifications.user > users._id
+Ref: user_verifications.otp > otps._id
+Ref: otps.user > users._id
+
+// ============================================
+// NOTES
+// ============================================

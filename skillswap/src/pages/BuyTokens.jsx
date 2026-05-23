@@ -2,13 +2,13 @@ import React, { memo, useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../components/context/UserContext";
 import { useTokens } from "../components/context/TokenContext";
+import { useLanguage } from "../components/context/LanguageContext";
 import Navbar from "../components/common/Navbar";
 import Footer from "../components/common/Footer";
 import {
   Coins,
   CreditCard,
   Wallet,
-  DollarSign,
   CheckCircle,
   Star,
   Zap,
@@ -30,69 +30,64 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
 import { paymentAPI } from "../services/api";
 
+// ==================== PRICING LOGIC ====================
+// ≤ 100 tokens → 10 EGP/token | > 100 tokens → 8.5 EGP/token
+const calcPrice = (tokens) =>
+  Math.round(tokens <= 100 ? tokens * 10 : tokens * 8.5);
+
 // ==================== DESIGN SYSTEM TOKENS ====================
 const TOKEN_PACKAGES = [
   {
     id: "starter",
-    name: "Starter Node",
+    name: "Starter",
     tokens: 10,
-    price: 9.99,
+    price: calcPrice(10), // 100 EGP
     popular: false,
-    bonus: 0,
     color: "bg-blue-500",
     icon: Coins,
     features: ["Entry-level Access", "Priority Sessions", "No Expiration"],
   },
   {
-    id: "popular",
-    name: "Standard Pulse",
-    tokens: 25,
-    price: 19.99,
-    popular: true,
-    bonus: 5,
-    savings: "20% Flow",
-    color: "bg-primary",
+    id: "basic",
+    name: "Basic",
+    tokens: 30,
+    price: calcPrice(30), // 300 EGP
+    popular: false,
+    color: "bg-violet-500",
     icon: Star,
-    features: [
-      "Optimized Value",
-      "Guild Verification",
-      "+5 Bonus Credits",
-      "Network Priority",
-    ],
+    features: ["Flexible Sessions", "Verified Teachers", "No Expiration"],
+  },
+  {
+    id: "popular",
+    name: "Popular",
+    tokens: 75,
+    price: calcPrice(75), // 750 EGP
+    popular: true,
+    savings: "Best Value",
+    color: "bg-primary",
+    icon: Zap,
+    features: ["Most Picked", "Network Priority", "Session Recording"],
   },
   {
     id: "professional",
-    name: "Pro Transmission",
-    tokens: 50,
-    price: 34.99,
+    name: "Pro",
+    tokens: 100,
+    price: calcPrice(100), // 1,000 EGP
     popular: false,
-    bonus: 10,
-    savings: "30% Flow",
     color: "bg-indigo-500",
-    icon: Zap,
-    features: [
-      "Advanced Learning",
-      "Private Channels",
-      "+10 Bonus Credits",
-      "Session Recording",
-    ],
+    icon: TrendingUp,
+    features: ["Advanced Learning", "Private Channels", "Session Recording"],
   },
   {
     id: "premium",
-    name: "Elite Collective",
-    tokens: 100,
-    price: 59.99,
+    name: "Elite",
+    tokens: 200,
+    price: calcPrice(200), // 1,700 EGP
     popular: false,
-    bonus: 25,
-    savings: "40% Flow",
+    savings: "15% Off",
     color: "bg-black",
-    icon: TrendingUp,
-    features: [
-      "Full Ecosystem Access",
-      "Elite Badge Access",
-      "+25 Bonus Credits",
-      "Concierge Support",
-    ],
+    icon: Shield,
+    features: ["Full Ecosystem Access", "Elite Badge", "Concierge Support"],
   },
 ];
 
@@ -134,10 +129,133 @@ const PAYMENT_METHODS = [
   },
 ];
 
+// Maps app language code → Intl locale for number formatting
+const LOCALE_MAP = { en: "en-EG", ar: "ar-EG", zh: "zh-CN" };
+const formatPrice = (price, lang) =>
+  price.toLocaleString(LOCALE_MAP[lang] || "en-EG");
+
+// ==================== CUSTOM TOKEN BOX ====================
+const CustomTokenBox = memo(({ lang, onPurchase }) => {
+  const [amount, setAmount] = useState("");
+
+  const tokens = Math.max(1, parseInt(amount) || 0);
+  const validAmount = amount !== "" && tokens >= 1;
+  const rate = tokens <= 100 ? 10 : 8.5;
+  const price = validAmount ? calcPrice(tokens) : 0;
+  const savings = tokens > 100 ? Math.round(tokens * (10 - 8.5)) : 0;
+
+  const handlePurchase = () => {
+    if (!validAmount) return;
+    onPurchase({
+      id: "custom",
+      name: `Custom — ${tokens} Tokens`,
+      tokens,
+      price,
+      bonus: 0,
+      color: "bg-primary",
+      icon: Coins,
+    });
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.5 }}
+      className="mt-12 p-10 bg-white border-2 border-dashed border-primary/30 rounded-[48px] hover:border-primary/60 transition-all"
+    >
+      <div className="flex flex-col items-center gap-10 lg:flex-row">
+        {/* Left label */}
+        <div className="flex-shrink-0 text-center lg:text-left">
+          <div className="inline-flex items-center justify-center mb-4 w-14 h-14 rounded-2xl bg-primary/10 text-primary">
+            <Coins className="w-7 h-7" />
+          </div>
+          <h3 className="text-xl font-black tracking-widest uppercase text-text-main">
+            Custom Amount
+          </h3>
+          <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest mt-1">
+            Choose exactly what you need
+          </p>
+        </div>
+
+        {/* Divider */}
+        <div className="hidden w-px h-24 lg:block bg-border" />
+
+        {/* Input + calc */}
+        <div className="flex-1 w-full">
+          <div className="flex flex-col items-center gap-4 sm:flex-row">
+            <div className="relative flex-1 w-full">
+              <input
+                type="number"
+                min="1"
+                max="10000"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value.replace(/\D/, ""))}
+                placeholder="Enter tokens…"
+                className="w-full p-5 text-2xl font-black tracking-tight transition-all border-2 outline-none border-border rounded-3xl bg-bg-alt focus:border-primary focus:ring-4 focus:ring-primary/10 text-text-main placeholder:text-text-muted/30"
+              />
+              <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[10px] font-black text-text-muted uppercase tracking-widest">
+                TK
+              </span>
+            </div>
+
+            {/* Live price display */}
+            <div className="flex flex-col items-center sm:items-end gap-1 min-w-[160px]">
+              <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">
+                Total Price
+              </p>
+              <p
+                className={`text-3xl font-black tracking-tighter ${validAmount ? "text-primary" : "text-text-muted/30"}`}
+              >
+                {validAmount ? `${formatPrice(price, lang)} EGP` : "— EGP"}
+              </p>
+              {validAmount && (
+                <p className="text-[10px] font-bold text-text-muted">
+                  {formatPrice(rate, lang)} EGP / token
+                </p>
+              )}
+              {savings > 0 && (
+                <span className="text-[9px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full uppercase tracking-widest">
+                  Save {formatPrice(savings, lang)} EGP vs standard
+                </span>
+              )}
+            </div>
+
+            <button
+              onClick={handlePurchase}
+              disabled={!validAmount}
+              className="px-8 py-5 bg-primary text-white rounded-3xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:scale-100 flex items-center gap-3 whitespace-nowrap"
+            >
+              Purchase <ArrowUpRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Rate hint */}
+          <div className="flex items-center gap-6 px-2 mt-5">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-400 rounded-full" />
+              <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">
+                1–100 tokens → 10 EGP each
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">
+                101+ tokens → 8.5 EGP each
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+});
+
 // ==================== PREMIUM PAYMENT PROCESSOR ====================
 const PaymentProcessor = memo(({ isOpen, onClose, pkg, onComplete }) => {
   const [step, setStep] = useState(1); // 1: Method, 2: Info, 3: Processing, 4: Success
   const [method, setMethod] = useState(null);
+  const { lang } = useLanguage();
   const [formData, setFormData] = useState({
     card: "",
     holder: "",
@@ -156,7 +274,11 @@ const PaymentProcessor = memo(({ isOpen, onClose, pkg, onComplete }) => {
       setStep(3);
       setPaymentError(null);
       try {
-        const result = await paymentAPI.process(pkg.id, method, formData);
+        const details =
+          pkg.id === "custom"
+            ? { ...formData, customTokens: pkg.tokens }
+            : formData;
+        const result = await paymentAPI.process(pkg.id, method, details);
         setEarnedTokens(result.payment?.tokensAmount || pkg.tokens + pkg.bonus);
         setStep(4);
       } catch (err) {
@@ -244,7 +366,7 @@ const PaymentProcessor = memo(({ isOpen, onClose, pkg, onComplete }) => {
                       Flow Amount
                     </p>
                     <p className="text-2xl font-black text-primary">
-                      ${pkg.price}
+                      {formatPrice(pkg.price, lang)} EGP
                     </p>
                   </div>
                 </div>
@@ -462,7 +584,7 @@ const PaymentProcessor = memo(({ isOpen, onClose, pkg, onComplete }) => {
                 onClick={handleNext}
                 className="flex-1 px-8 py-4 bg-text-main text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-text-main/10 hover:bg-primary transition-all flex items-center justify-center gap-3"
               >
-                {step === 1 ? "Initiate Flow" : "Confirm Transmission"}
+                {step === 1 ? "continue" : "Confirm"}
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -486,6 +608,7 @@ const BuyTokens = memo(() => {
   const navigate = useNavigate();
   const { user } = useUser();
   const { tokens, refreshTokens } = useTokens();
+  const { lang } = useLanguage();
   const [selectedPkg, setSelectedPkg] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -523,17 +646,16 @@ const BuyTokens = memo(() => {
                   <Zap className="w-3.5 h-3.5 fill-current" />
                 </div>
                 <span className="text-[10px] font-black uppercase tracking-[0.3em] text-text-main">
-                  The Vault Network
+                  The SystemNetwork
                 </span>
               </div>
 
               <h1 className="text-7xl md:text-9xl font-black text-text-main tracking-tighter mb-8 leading-[0.8]">
-                Synthesize
+                Purchase
                 <br />
                 <span className="font-serif italic text-primary">
-                  Power
+                  Tokens
                 </span>{" "}
-                Flow.
               </h1>
 
               <p className="max-w-2xl mx-auto mb-16 text-xl font-medium leading-relaxed text-text-muted">
@@ -544,7 +666,7 @@ const BuyTokens = memo(() => {
 
               {/* Current State Pill */}
               {user && (
-                <div className="inline-flex items-center gap-4 px-8 py-5 bg-text-main shadow-2xl shadow-text-main/20 rounded-[32px] border border-white/10">
+                <div className="inline-flex items-center gap-4 px-8 py-5 border shadow-2xl bg-text-main shadow-text-main/20 rounded-4xl border-white/10">
                   <div className="flex items-center justify-center w-12 h-12 bg-primary/20 rounded-2xl text-primary group">
                     <Coins className="w-6 h-6 transition-transform group-hover:rotate-12" />
                   </div>
@@ -578,7 +700,7 @@ const BuyTokens = memo(() => {
 
         {/* PACKAGE GRID */}
         <section className="px-6 mx-auto max-w-7xl">
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-5">
             {TOKEN_PACKAGES.map((pkg, i) => (
               <motion.div
                 key={pkg.id}
@@ -639,7 +761,7 @@ const BuyTokens = memo(() => {
                       Cost Allocation
                     </span>
                     <span className="text-2xl font-black tracking-tighter text-text-main">
-                      ${pkg.price}
+                      {formatPrice(pkg.price, lang)} EGP
                     </span>
                   </div>
                 </div>
@@ -666,12 +788,15 @@ const BuyTokens = memo(() => {
                       : "bg-text-main text-white hover:bg-primary shadow-xl shadow-text-main/10"
                   }`}
                 >
-                  Register Nodes
+                  Purchase
                   <ArrowUpRight className="w-4 h-4" />
                 </button>
               </motion.div>
             ))}
           </div>
+
+          {/* CUSTOM TOKEN BOX */}
+          <CustomTokenBox lang={lang} onPurchase={triggerPayment} />
 
           {/* SECURITY & TRUST */}
           <div className="grid grid-cols-1 gap-8 mt-32 md:grid-cols-3">
@@ -729,7 +854,7 @@ const BuyTokens = memo(() => {
                   Transmission.
                 </h3>
                 <p className="mb-10 text-lg font-medium leading-relaxed text-white/60">
-                  Ready to advance your nodes? Join thousands of elite learners
+                  Ready to advance your skills? Join thousands of elite learners
                   scaling their potential through pure collective exchange.
                 </p>
                 <div className="inline-flex items-center gap-6 p-4 border bg-white/5 border-white/10 rounded-2xl">
