@@ -6,7 +6,7 @@ import { v2 as cloudinary } from 'cloudinary';
 // @desc    Start recording for a session
 // @route   POST /api/recordings/:sessionId/start
 // @access  Private (Teacher or Learner in session)
-export const startRecording = async (req, res) => {
+export const startRecording = async (req, res, next) => {
   try {
     const { sessionId } = req.params;
     const userId = req.user._id;
@@ -84,18 +84,14 @@ export const startRecording = async (req, res) => {
     });
   } catch (error) {
     console.error('Start recording error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error starting recording',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Stop recording for a session
 // @route   POST /api/recordings/:sessionId/stop
 // @access  Private (Teacher or Learner in session)
-export const stopRecording = async (req, res) => {
+export const stopRecording = async (req, res, next) => {
   try {
     const { sessionId } = req.params;
     const userId = req.user._id;
@@ -153,18 +149,14 @@ export const stopRecording = async (req, res) => {
     });
   } catch (error) {
     console.error('Stop recording error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error stopping recording',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Upload recording file (webhook/manual)
 // @route   POST /api/recordings/:id/upload
 // @access  Private (Admin or system)
-export const uploadRecordingFile = async (req, res) => {
+export const uploadRecordingFile = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { fileUrl, fileSize, resolution, format } = req.body;
@@ -232,18 +224,14 @@ export const uploadRecordingFile = async (req, res) => {
     });
   } catch (error) {
     console.error('Upload recording error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error uploading recording',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Get user's recordings
 // @route   GET /api/recordings
 // @access  Private
-export const getRecordings = async (req, res) => {
+export const getRecordings = async (req, res, next) => {
   try {
     const userId = req.user._id;
     const { status = 'ready', limit = 20, skip = 0 } = req.query;
@@ -267,18 +255,14 @@ export const getRecordings = async (req, res) => {
     });
   } catch (error) {
     console.error('Get recordings error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching recordings',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Get single recording
 // @route   GET /api/recordings/:id
 // @access  Private
-export const getRecording = async (req, res) => {
+export const getRecording = async (req, res, next) => {
   try {
     const { id } = req.params;
     const userId = req.user._id;
@@ -325,18 +309,14 @@ export const getRecording = async (req, res) => {
     });
   } catch (error) {
     console.error('Get recording error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching recording',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Get recording playback URL
 // @route   GET /api/recordings/:id/playback
 // @access  Private
-export const getPlaybackUrl = async (req, res) => {
+export const getPlaybackUrl = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { token } = req.query;
@@ -392,18 +372,14 @@ export const getPlaybackUrl = async (req, res) => {
     });
   } catch (error) {
     console.error('Get playback URL error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error getting playback URL',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Delete recording
 // @route   DELETE /api/recordings/:id
 // @access  Private (Teacher/Learner/Admin)
-export const deleteRecording = async (req, res) => {
+export const deleteRecording = async (req, res, next) => {
   try {
     const { id } = req.params;
     const userId = req.user._id;
@@ -451,18 +427,14 @@ export const deleteRecording = async (req, res) => {
     });
   } catch (error) {
     console.error('Delete recording error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error deleting recording',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Get recording statistics
 // @route   GET /api/recordings/stats
 // @access  Private
-export const getRecordingStats = async (req, res) => {
+export const getRecordingStats = async (req, res, next) => {
   try {
     const userId = req.user._id;
 
@@ -501,10 +473,6 @@ export const getRecordingStats = async (req, res) => {
     });
   } catch (error) {
     console.error('Get recording stats error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching recording statistics',
-      error: error.message
-    });
+    next(error);
   }
 };

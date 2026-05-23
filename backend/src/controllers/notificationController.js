@@ -3,7 +3,7 @@ import Notification from '../models/Notification.js';
 // @desc    Get user's notifications
 // @route   GET /api/notifications
 // @access  Private
-export const getNotifications = async (req, res) => {
+export const getNotifications = async (req, res, next) => {
   try {
     const userId = req.user._id;
     const { limit = 50, skip = 0, unreadOnly = false } = req.query;
@@ -24,18 +24,14 @@ export const getNotifications = async (req, res) => {
     });
   } catch (error) {
     console.error('Get notifications error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching notifications',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Get unread notifications count
 // @route   GET /api/notifications/unread/count
 // @access  Private
-export const getUnreadCount = async (req, res) => {
+export const getUnreadCount = async (req, res, next) => {
   try {
     const userId = req.user._id;
     const count = await Notification.getUnreadCount(userId);
@@ -46,18 +42,14 @@ export const getUnreadCount = async (req, res) => {
     });
   } catch (error) {
     console.error('Get unread count error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching unread count',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Mark notification as read
 // @route   PUT /api/notifications/:id/read
 // @access  Private
-export const markAsRead = async (req, res) => {
+export const markAsRead = async (req, res, next) => {
   try {
     const { id } = req.params;
     const userId = req.user._id;
@@ -83,18 +75,14 @@ export const markAsRead = async (req, res) => {
     });
   } catch (error) {
     console.error('Mark as read error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error marking notification as read',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Mark all notifications as read
 // @route   PUT /api/notifications/read-all
 // @access  Private
-export const markAllAsRead = async (req, res) => {
+export const markAllAsRead = async (req, res, next) => {
   try {
     const userId = req.user._id;
 
@@ -107,18 +95,14 @@ export const markAllAsRead = async (req, res) => {
     });
   } catch (error) {
     console.error('Mark all as read error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error marking all notifications as read',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Delete notification
 // @route   DELETE /api/notifications/:id
 // @access  Private
-export const deleteNotification = async (req, res) => {
+export const deleteNotification = async (req, res, next) => {
   try {
     const { id } = req.params;
     const userId = req.user._id;
@@ -141,18 +125,14 @@ export const deleteNotification = async (req, res) => {
     });
   } catch (error) {
     console.error('Delete notification error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error deleting notification',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Delete all read notifications
 // @route   DELETE /api/notifications/read/clear
 // @access  Private
-export const clearReadNotifications = async (req, res) => {
+export const clearReadNotifications = async (req, res, next) => {
   try {
     const userId = req.user._id;
 
@@ -168,18 +148,14 @@ export const clearReadNotifications = async (req, res) => {
     });
   } catch (error) {
     console.error('Clear notifications error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error clearing notifications',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Create notification (admin/system only)
 // @route   POST /api/notifications
 // @access  Private (Admin)
-export const createNotification = async (req, res) => {
+export const createNotification = async (req, res, next) => {
   try {
     const {
       recipient,
@@ -224,18 +200,14 @@ export const createNotification = async (req, res) => {
     });
   } catch (error) {
     console.error('Create notification error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error creating notification',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Get notification preferences
 // @route   GET /api/notifications/preferences
 // @access  Private
-export const getNotificationPreferences = async (req, res) => {
+export const getNotificationPreferences = async (req, res, next) => {
   try {
     const user = req.user;
 
@@ -249,18 +221,14 @@ export const getNotificationPreferences = async (req, res) => {
     });
   } catch (error) {
     console.error('Get preferences error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching notification preferences',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Update notification preferences
 // @route   PUT /api/notifications/preferences
 // @access  Private
-export const updateNotificationPreferences = async (req, res) => {
+export const updateNotificationPreferences = async (req, res, next) => {
   try {
     const userId = req.user._id;
     const { emailNotifications, sessionReminders, marketingEmails } = req.body;
@@ -293,10 +261,6 @@ export const updateNotificationPreferences = async (req, res) => {
     });
   } catch (error) {
     console.error('Update preferences error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error updating preferences',
-      error: error.message
-    });
+    next(error);
   }
 };

@@ -7,8 +7,10 @@ import {
   PlayCircle,
   ChevronRight,
 } from "lucide-react";
+import { useLanguage } from "../../context/LanguageContext";
 
 const CoursesSection = memo(() => {
+  const { t } = useLanguage();
   const [courses] = useState([
     {
       id: 1,
@@ -77,19 +79,19 @@ const CoursesSection = memo(() => {
           <div className="text-3xl font-bold text-indigo-600">
             {enrolledCourses.length}
           </div>
-          <p className="mt-2 text-sm text-gray-600">Courses In Progress</p>
+          <p className="mt-2 text-sm text-gray-600">{t('courses_in_progress')}</p>
         </div>
         <div className="p-6 text-center bg-white border border-gray-200 rounded-xl">
           <div className="text-3xl font-bold text-green-600">
             {completedCourses.length}
           </div>
-          <p className="mt-2 text-sm text-gray-600">Completed</p>
+          <p className="mt-2 text-sm text-gray-600">{t('courses_completed')}</p>
         </div>
         <div className="p-6 text-center bg-white border border-gray-200 rounded-xl">
           <div className="text-3xl font-bold text-purple-600">
             {completedCourses.length}
           </div>
-          <p className="mt-2 text-sm text-gray-600">Certificates</p>
+          <p className="mt-2 text-sm text-gray-600">{t('courses_certificates')}</p>
         </div>
         <div className="p-6 text-center bg-white border border-gray-200 rounded-xl">
           <div className="text-3xl font-bold text-blue-600">
@@ -98,7 +100,7 @@ const CoursesSection = memo(() => {
               0
             )}
           </div>
-          <p className="mt-2 text-sm text-gray-600">Hours Learned</p>
+          <p className="mt-2 text-sm text-gray-600">{t('courses_hours_learned')}</p>
         </div>
       </div>
 
@@ -108,7 +110,7 @@ const CoursesSection = memo(() => {
           <span className="flex items-center justify-center w-8 h-8 bg-indigo-100 rounded-lg">
             📚
           </span>
-          <span>Enrolled Courses ({enrolledCourses.length})</span>
+          <span>{t('courses_enrolled')} ({enrolledCourses.length})</span>
         </h2>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -133,7 +135,7 @@ const CoursesSection = memo(() => {
                 <div className="mt-4">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-gray-700">
-                      Progress
+                      {t('courses_progress')}
                     </span>
                     <span className="text-xs font-bold text-indigo-600">
                       {course.progress}%
@@ -156,7 +158,7 @@ const CoursesSection = memo(() => {
                 {/* Action Button */}
                 <button className="flex items-center justify-center w-full py-2 mt-4 space-x-2 font-medium text-white transition-colors bg-indigo-600 rounded-lg hover:bg-indigo-700">
                   <PlayCircle className="w-4 h-4" />
-                  <span>Continue Learning</span>
+                  <span>{t('courses_continue_learning')}</span>
                 </button>
               </div>
             </div>
@@ -170,7 +172,7 @@ const CoursesSection = memo(() => {
           <span className="flex items-center justify-center w-8 h-8 bg-green-100 rounded-lg">
             ✓
           </span>
-          <span>Completed Courses ({completedCourses.length})</span>
+          <span>{t('courses_completed_section')} ({completedCourses.length})</span>
         </h2>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -185,7 +187,7 @@ const CoursesSection = memo(() => {
               {/* Completed Badge */}
               <div className="absolute flex items-center px-3 py-1 space-x-1 text-xs font-bold text-white bg-green-500 rounded-full top-4 right-4">
                 <CheckCircle className="w-4 h-4" />
-                <span>Completed</span>
+                <span>{t('courses_completed')}</span>
               </div>
 
               {/* Course Content */}
@@ -203,10 +205,10 @@ const CoursesSection = memo(() => {
                     <Award className="flex-shrink-0 w-5 h-5 text-yellow-600" />
                     <div>
                       <p className="text-xs font-bold text-yellow-900">
-                        Certificate Earned
+                        {t('courses_certificate_earned')}
                       </p>
                       <p className="text-xs text-yellow-700">
-                        Download your achievement
+                        {t('courses_download_achievement')}
                       </p>
                     </div>
                   </div>
@@ -215,13 +217,13 @@ const CoursesSection = memo(() => {
                 {/* Hours */}
                 <p className="flex items-center mt-4 space-x-1 text-sm text-gray-600">
                   <Clock className="w-4 h-4" />
-                  <span>{course.hours} completed</span>
+                  <span>{course.hours} {t('courses_completed_label')}</span>
                 </p>
 
                 {/* Action Button */}
                 <button className="flex items-center justify-center w-full py-2 mt-4 space-x-2 font-medium text-gray-700 transition-colors bg-gray-100 rounded-lg hover:bg-gray-200">
                   <Award className="w-4 h-4" />
-                  <span>View Certificate</span>
+                  <span>{t('courses_view_certificate')}</span>
                 </button>
               </div>
             </div>

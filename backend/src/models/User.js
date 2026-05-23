@@ -131,6 +131,10 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false // User must verify email to activate
   },
+  isOnline: {
+    type: Boolean,
+    default: false
+  },
   role: {
     type: String,
     enum: ['user', 'teacher', 'admin'],

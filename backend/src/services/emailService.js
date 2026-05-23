@@ -1,16 +1,21 @@
-import nodemailer from 'nodemailer';
-import { activationEmailTemplate, otpEmailTemplate, welcomeEmailTemplate, banEmailTemplate } from '../utils/emailTemplates.js';
+import nodemailer from "nodemailer";
+import {
+  activationEmailTemplate,
+  otpEmailTemplate,
+  welcomeEmailTemplate,
+  banEmailTemplate,
+} from "../utils/emailTemplates.js";
 
 // Create reusable transporter
 const createTransporter = () => {
   return nodemailer.createTransport({
-    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+    host: process.env.EMAIL_HOST || "smtp.gmail.com",
     port: process.env.EMAIL_PORT || 587,
     secure: false, // true for 465, false for other ports
     auth: {
       user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD
-    }
+      pass: process.env.EMAIL_PASSWORD,
+    },
   });
 };
 
@@ -22,10 +27,10 @@ export const sendActivationEmail = async (email, name, activationToken) => {
     const activationLink = `${process.env.FRONTEND_URL}/activate?token=${activationToken}`;
 
     const mailOptions = {
-      from: process.env.EMAIL_FROM || 'SkillSwap <noreply@skillswap.com>',
+      from: process.env.EMAIL_FROM || "skillup <noreply@skillup.com>",
       to: email,
-      subject: 'Activate Your SkillSwap Account',
-      html: activationEmailTemplate(name, activationLink)
+      subject: "Activate Your skillup Account",
+      html: activationEmailTemplate(name, activationLink),
     };
 
     const info = await transporter.sendMail(mailOptions);
@@ -33,45 +38,45 @@ export const sendActivationEmail = async (email, name, activationToken) => {
 
     return {
       success: true,
-      messageId: info.messageId
+      messageId: info.messageId,
     };
   } catch (error) {
-    console.error('❌ Error sending activation email:', error);
-    throw new Error('Failed to send activation email');
+    console.error("❌ Error sending activation email:", error);
+    throw new Error("Failed to send activation email");
   }
 };
 
 // Send OTP email
 export const sendOTPEmail = async (email, otp) => {
   try {
-    console.log('📧 Creating transporter for OTP email...');
+    console.log("📧 Creating transporter for OTP email...");
     const transporter = createTransporter();
 
-    console.log('📧 Verifying transporter connection...');
+    console.log("📧 Verifying transporter connection...");
     await transporter.verify();
-    console.log('📧 Transporter verified successfully');
+    console.log("📧 Transporter verified successfully");
 
     const mailOptions = {
-      from: process.env.EMAIL_FROM || 'SkillSwap <noreply@skillswap.com>',
+      from: process.env.EMAIL_FROM || "skillup <noreply@skillup.com>",
       to: email,
-      subject: 'Your SkillSwap Login OTP',
-      html: otpEmailTemplate(otp)
+      subject: "Your skillup Login OTP",
+      html: otpEmailTemplate(otp),
     };
 
-    console.log('📧 Sending OTP email to:', email);
+    console.log("📧 Sending OTP email to:", email);
     const info = await transporter.sendMail(mailOptions);
     console.log(`✅ OTP email sent to ${email}: ${info.messageId}`);
 
     return {
       success: true,
-      messageId: info.messageId
+      messageId: info.messageId,
     };
   } catch (error) {
-    console.error('❌ Error sending OTP email:', error.message);
-    console.error('❌ Error code:', error.code);
-    console.error('❌ Error command:', error.command);
-    console.error('❌ Full error stack:', error.stack);
-    throw new Error('Failed to send OTP email');
+    console.error("❌ Error sending OTP email:", error.message);
+    console.error("❌ Error code:", error.code);
+    console.error("❌ Error command:", error.command);
+    console.error("❌ Full error stack:", error.stack);
+    throw new Error("Failed to send OTP email");
   }
 };
 
@@ -81,10 +86,10 @@ export const sendWelcomeEmail = async (email, name) => {
     const transporter = createTransporter();
 
     const mailOptions = {
-      from: process.env.EMAIL_FROM || 'SkillSwap <noreply@skillswap.com>',
+      from: process.env.EMAIL_FROM || "skillup <noreply@skillup.com>",
       to: email,
-      subject: 'Welcome to SkillSwap!',
-      html: welcomeEmailTemplate(name)
+      subject: "Welcome to skillup!",
+      html: welcomeEmailTemplate(name),
     };
 
     const info = await transporter.sendMail(mailOptions);
@@ -92,14 +97,14 @@ export const sendWelcomeEmail = async (email, name) => {
 
     return {
       success: true,
-      messageId: info.messageId
+      messageId: info.messageId,
     };
   } catch (error) {
-    console.error('❌ Error sending welcome email:', error);
+    console.error("❌ Error sending welcome email:", error);
     // Don't throw error for welcome email - it's not critical
     return {
       success: false,
-      error: error.message
+      error: error.message,
     };
   }
 };
@@ -110,24 +115,26 @@ export const sendBanEmail = async (email, name, reason) => {
     const transporter = createTransporter();
 
     const mailOptions = {
-      from: process.env.EMAIL_FROM || 'SkillSwap <noreply@skillswap.com>',
+      from: process.env.EMAIL_FROM || "skillup <noreply@skillup.com>",
       to: email,
-      subject: 'Your SkillSwap Account Has Been Suspended',
-      html: banEmailTemplate(name, reason)
+      subject: "Your skillup Account Has Been Suspended",
+      html: banEmailTemplate(name, reason),
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log(`✅ Ban notification email sent to ${email}: ${info.messageId}`);
+    console.log(
+      `✅ Ban notification email sent to ${email}: ${info.messageId}`,
+    );
 
     return {
       success: true,
-      messageId: info.messageId
+      messageId: info.messageId,
     };
   } catch (error) {
-    console.error('❌ Error sending ban email:', error);
+    console.error("❌ Error sending ban email:", error);
     return {
       success: false,
-      error: error.message
+      error: error.message,
     };
   }
 };
@@ -137,10 +144,10 @@ export const testEmailConfig = async () => {
   try {
     const transporter = createTransporter();
     await transporter.verify();
-    console.log('✅ Email server is ready to send emails');
+    console.log("✅ Email server is ready to send emails");
     return true;
   } catch (error) {
-    console.error('❌ Email configuration error:', error);
+    console.error("❌ Email configuration error:", error);
     return false;
   }
 };

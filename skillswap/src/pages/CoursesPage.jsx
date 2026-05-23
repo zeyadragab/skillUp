@@ -2,10 +2,13 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Search, Users, TrendingUp, Filter } from "lucide-react";
 import { skillsAPI } from "../services/api";
+import { useLanguage } from "../components/context/LanguageContext";
+import Navbar from "../components/common/Navbar";
 
 const CoursesPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const categoryParam = searchParams.get("category");
 
   const [skills, setSkills] = useState([]);
@@ -68,52 +71,56 @@ const CoursesPage = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-16 h-16 border-b-4 border-indigo-600 rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[80vh]">
+          <div className="w-16 h-16 border-b-4 border-indigo-600 rounded-full animate-spin"></div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50">
-      <div className="w-full px-4 py-12 mx-auto max-w-7xl sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-12 text-center">
-          <h1 className="mb-4 text-5xl font-bold text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text">
-            Explore Skills & Courses
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+
+      <div className="w-full px-4 pt-[calc(72px+3rem)] pb-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+        {/* Title */}
+        <div className="mb-10 text-center">
+          <h1 className="mb-4 text-5xl font-bold text-transparent bg-linear-to-r from-indigo-600 to-purple-600 bg-clip-text">
+            {t("course_explore")}
           </h1>
           <p className="text-xl text-gray-600">
             {selectedCategory !== "all"
-              ? `Discover ${selectedCategory} skills taught by expert teachers`
-              : "Find teachers for any skill you want to learn"}
+              ? `${t("course_discover_category")} ${selectedCategory} ${t("course_skills_taught")}`
+              : t("course_discover")}
           </p>
         </div>
 
         {/* Search Bar */}
-        <div className="max-w-3xl mx-auto mb-8">
-          <div className="relative">
-            <Search className="absolute w-6 h-6 text-gray-400 transform -translate-y-1/2 left-4 top-1/2" />
-            <input
-              type="text"
-              placeholder="Search for any skill (e.g., React, Guitar, Spanish)..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full py-4 pl-14 pr-4 text-lg transition-all border-2 border-gray-300 shadow-lg rounded-2xl focus:ring-4 focus:ring-indigo-200 focus:border-indigo-500"
-            />
-          </div>
+        <div className="relative max-w-2xl mx-auto mb-10">
+          <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder={t("course_search_placeholder")}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full rounded-2xl border border-gray-200 bg-white py-4 pl-14 pr-4 text-gray-900 shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-lg"
+          />
         </div>
+
 
         {/* Filters Section */}
         <div className="p-6 mb-8 bg-white shadow-lg rounded-2xl">
           <div className="flex items-center gap-2 mb-4">
             <Filter className="w-5 h-5 text-indigo-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
+            <h3 className="text-lg font-semibold text-gray-900">{t("course_filters")}</h3>
           </div>
 
           {/* Category Filters */}
           <div className="mb-4">
             <label className="block mb-2 text-sm font-medium text-gray-700">
-              Learning Path
+              {t("course_learning_path")}
             </label>
             <div className="flex flex-wrap gap-2">
               <button
@@ -124,7 +131,7 @@ const CoursesPage = () => {
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300"
                 }`}
               >
-                All Categories
+                {t("course_all_categories")}
               </button>
               {categories.map((cat) => (
                 <button
@@ -145,7 +152,7 @@ const CoursesPage = () => {
           {/* Difficulty Filters */}
           <div>
             <label className="block mb-2 text-sm font-medium text-gray-700">
-              Difficulty Level
+              {t("course_difficulty")}
             </label>
             <div className="flex flex-wrap gap-2">
               {["all", "beginner", "intermediate", "advanced", "expert"].map(
@@ -159,7 +166,7 @@ const CoursesPage = () => {
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300"
                     }`}
                   >
-                    {level === "all" ? "All Levels" : level}
+                    {level === "all" ? t("course_all_levels") : t(`course_${level}`)}
                   </button>
                 )
               )}
@@ -170,13 +177,13 @@ const CoursesPage = () => {
         {/* Results Count */}
         <div className="mb-6">
           <p className="text-lg text-gray-700">
-            Found{" "}
+            {t("course_found")}{" "}
             <span className="font-bold text-indigo-600">
               {filteredSkills.length}
             </span>{" "}
-            {filteredSkills.length === 1 ? "skill" : "skills"}
+            {filteredSkills.length === 1 ? t("course_skill") : t("course_skills")}
             {selectedCategory !== "all" && (
-              <span> in {selectedCategory}</span>
+              <span> {t("course_in")} {selectedCategory}</span>
             )}
           </p>
         </div>
@@ -193,7 +200,7 @@ const CoursesPage = () => {
                 <div className="p-6">
                   {/* Skill Icon & Name */}
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="flex items-center justify-center w-14 h-14 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl">
+                    <div className="flex items-center justify-center w-14 h-14 bg-linear-to-br from-indigo-100 to-purple-100 rounded-xl">
                       <span className="text-3xl">{skill.icon || "📚"}</span>
                     </div>
                     <div className="flex-1">
@@ -220,14 +227,14 @@ const CoursesPage = () => {
                       <span className="font-semibold">
                         {skill.totalTeachers || 0}
                       </span>
-                      <span className="text-gray-500">teachers</span>
+                      <span className="text-gray-500">{t("course_teachers")}</span>
                     </div>
                     <div className="flex items-center gap-1 text-green-600">
                       <TrendingUp className="w-4 h-4" />
                       <span className="font-semibold">
                         {skill.totalLearners || 0}
                       </span>
-                      <span className="text-gray-500">learning</span>
+                      <span className="text-gray-500">{t("course_learning")}</span>
                     </div>
                   </div>
 
@@ -260,7 +267,7 @@ const CoursesPage = () => {
                 </div>
 
                 {/* Hover Indicator */}
-                <div className="h-1 transition-transform duration-300 transform scale-x-0 bg-gradient-to-r from-indigo-500 to-purple-600 group-hover:scale-x-100"></div>
+                <div className="h-1 transition-transform duration-300 transform scale-x-0 bg-linear-to-r from-indigo-500 to-purple-600 group-hover:scale-x-100"></div>
               </div>
             ))}
           </div>
@@ -270,10 +277,10 @@ const CoursesPage = () => {
               <Search className="w-10 h-10 text-gray-400" />
             </div>
             <h3 className="mb-3 text-2xl font-bold text-gray-900">
-              No skills found
+              {t("course_no_skills")}
             </h3>
             <p className="mb-6 text-gray-600">
-              Try adjusting your search or filters to find what you're looking for
+              {t("course_adjust_search")}
             </p>
             <button
               onClick={() => {
@@ -284,7 +291,7 @@ const CoursesPage = () => {
               }}
               className="px-6 py-3 font-medium text-white transition-colors bg-indigo-600 rounded-lg hover:bg-indigo-700"
             >
-              Clear All Filters
+              {t("course_clear_filters")}
             </button>
           </div>
         )}

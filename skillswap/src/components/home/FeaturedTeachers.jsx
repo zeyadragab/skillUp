@@ -20,7 +20,7 @@ const FeaturedTeachers = memo(() => {
 
       // Fetch all teachers and pick top rated
       const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api"}/users/search`,
+        `${import.meta.env.VITE_API_URL || "https://skillupbackend-rouge.vercel.app/api"}/users/search`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

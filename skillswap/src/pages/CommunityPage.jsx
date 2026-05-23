@@ -23,6 +23,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useUser } from "../components/context/UserContext";
 import { useTokens } from "../components/context/TokenContext";
+import { useLanguage } from "../components/context/LanguageContext";
 import { userAPI, sessionAPI, skillsAPI } from "../services/api";
 import Navbar from "../components/common/Navbar";
 import Footer from "../components/common/Footer";
@@ -55,6 +56,7 @@ const CommunityStat = memo(({ icon: Icon, label, value, color, trend, delay }) =
 ));
 
 const CommunityPage = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { user } = useUser();
   const { tokens } = useTokens();
@@ -143,50 +145,50 @@ const CommunityPage = () => {
   const communityFeatures = [
     {
       icon: MessageCircle,
-      title: "Neural Network",
-      description: "Direct peer-to-peer transmission for rapid wisdom swap.",
+      title: t("skills_neural_network"),
+      description: t("skills_neural_desc"),
       color: "bg-primary",
-      stats: "Instant Comms",
+      stats: t("skills_instant_comms"),
       href: "/chat",
     },
     {
       icon: Users,
-      title: "Master Directory",
-      description: "Filter through verified experts across 50+ categories.",
+      title: t("skills_master_directory"),
+      description: t("skills_directory_desc"),
       color: "bg-secondary",
-      stats: `${stats.totalTeachers}+ Mentors`,
+      stats: `${stats.totalTeachers}+ ${t("skills_mentors")}`,
       href: "/teachers",
     },
     {
       icon: Target,
-      title: "Skill Atlas",
-      description: "Explore the complete landscape of available knowledge.",
+      title: t("skills_skill_atlas"),
+      description: t("skills_atlas_desc"),
       color: "bg-accent",
-      stats: `${stats.totalSkills} Nodes`,
+      stats: `${stats.totalSkills} ${t("skills_nodes")}`,
       href: "/courses",
     },
     {
       icon: Wallet,
-      title: "The Vault",
-      description: "Securely manage your tokens and transaction history.",
+      title: t("skills_the_vault"),
+      description: t("skills_vault_desc"),
       color: "bg-emerald-500",
       stats: user ? `${tokens || 0} TK` : "Open Vault",
       href: "/wallet",
     },
     {
       icon: Zap,
-      title: "Session Pulse",
-      description: "Live track of your active learning and teaching flow.",
+      title: t("skills_session_pulse"),
+      description: t("skills_pulse_desc"),
       color: "bg-orange-500",
-      stats: "Active Flow",
+      stats: t("skills_active_flow"),
       href: "/sessions",
     },
     {
       icon: Video,
-      title: "Wisdom Archive",
-      description: "Access high-definition recordings of your past swaps.",
+      title: t("skills_wisdom_archive"),
+      description: t("skills_archive_desc"),
       color: "bg-red-500",
-      stats: "Cloud Playback",
+      stats: t("skills_cloud_playback"),
       href: "/recordings",
     },
   ];

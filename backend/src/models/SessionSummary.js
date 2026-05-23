@@ -31,7 +31,7 @@ const sessionSummarySchema = new mongoose.Schema({
     mainTopics: [{
       topic: String,
       description: String,
-      timestamp: Number
+      timestamp: mongoose.Schema.Types.Mixed // AI returns string timestamps (e.g. "00:05"); also accepts Number
     }],
 
     // Key learning points

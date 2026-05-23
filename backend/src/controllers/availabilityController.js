@@ -4,7 +4,7 @@ import User from '../models/User.js';
 // @desc    Get teacher's availability
 // @route   GET /api/availability/:teacherId
 // @access  Public
-export const getTeacherAvailability = async (req, res) => {
+export const getTeacherAvailability = async (req, res, next) => {
   try {
     const { teacherId } = req.params;
     const { date } = req.query;
@@ -40,18 +40,14 @@ export const getTeacherAvailability = async (req, res) => {
     }
   } catch (error) {
     console.error('Get availability error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching availability',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Create/Update availability
 // @route   POST /api/availability
 // @access  Private (Teacher)
-export const setAvailability = async (req, res) => {
+export const setAvailability = async (req, res, next) => {
   try {
     const teacherId = req.user._id;
     const {
@@ -123,18 +119,14 @@ export const setAvailability = async (req, res) => {
     });
   } catch (error) {
     console.error('Set availability error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error setting availability',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Get my availability (as teacher)
 // @route   GET /api/availability/my
 // @access  Private (Teacher)
-export const getMyAvailability = async (req, res) => {
+export const getMyAvailability = async (req, res, next) => {
   try {
     const teacherId = req.user._id;
 
@@ -157,18 +149,14 @@ export const getMyAvailability = async (req, res) => {
     });
   } catch (error) {
     console.error('Get my availability error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching availability',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Update availability status
 // @route   PUT /api/availability/:id/status
 // @access  Private (Teacher)
-export const updateAvailabilityStatus = async (req, res) => {
+export const updateAvailabilityStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { isActive } = req.body;
@@ -196,18 +184,14 @@ export const updateAvailabilityStatus = async (req, res) => {
     });
   } catch (error) {
     console.error('Update availability status error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error updating availability status',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Delete availability
 // @route   DELETE /api/availability/:id
 // @access  Private (Teacher)
-export const deleteAvailability = async (req, res) => {
+export const deleteAvailability = async (req, res, next) => {
   try {
     const { id } = req.params;
     const teacherId = req.user._id;
@@ -230,18 +214,14 @@ export const deleteAvailability = async (req, res) => {
     });
   } catch (error) {
     console.error('Delete availability error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error deleting availability',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Initialize default availability for teacher
 // @route   POST /api/availability/default
 // @access  Private (Teacher)
-export const createDefaultAvailability = async (req, res) => {
+export const createDefaultAvailability = async (req, res, next) => {
   try {
     const teacherId = req.user._id;
 
@@ -272,18 +252,14 @@ export const createDefaultAvailability = async (req, res) => {
     });
   } catch (error) {
     console.error('Create default availability error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error creating default availability',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Get available time slots for booking
 // @route   GET /api/availability/:teacherId/slots
 // @access  Public
-export const getAvailableSlots = async (req, res) => {
+export const getAvailableSlots = async (req, res, next) => {
   try {
     const { teacherId } = req.params;
     const { date, duration = 60 } = req.query;
@@ -318,10 +294,6 @@ export const getAvailableSlots = async (req, res) => {
     });
   } catch (error) {
     console.error('Get available slots error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching available slots',
-      error: error.message
-    });
+    next(error);
   }
 };

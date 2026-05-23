@@ -17,7 +17,8 @@ router.use(protect);
 
 // Summary routes
 router.post('/generate/:sessionId', generateSummary);
-router.get('/:sessionId', getSummary);
+router.get('/session/:sessionId', getSummary); // Explicit session lookup route
+router.get('/:sessionId', getSummary);          // Legacy alias — kept for backwards compat
 router.post('/mock/:sessionId', generateMockSummary); // For testing with mock data
 
 // Background job routes

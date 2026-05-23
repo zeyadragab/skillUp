@@ -6,7 +6,7 @@ import Payment from '../models/Payment.js';
 // @desc    Get platform statistics
 // @route   GET /api/admin/stats
 // @access  Private/Admin
-export const getPlatformStats = async (req, res) => {
+export const getPlatformStats = async (req, res, next) => {
   try {
     // Get counts
     const [
@@ -98,17 +98,14 @@ export const getPlatformStats = async (req, res) => {
     });
   } catch (error) {
     console.error('Get stats error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching statistics'
-    });
+    next(error);
   }
 };
 
 // @desc    Get all users with pagination
 // @route   GET /api/admin/users
 // @access  Private/Admin
-export const getAllUsers = async (req, res) => {
+export const getAllUsers = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
@@ -151,17 +148,14 @@ export const getAllUsers = async (req, res) => {
     });
   } catch (error) {
     console.error('Get users error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching users'
-    });
+    next(error);
   }
 };
 
 // @desc    Get user details
 // @route   GET /api/admin/users/:id
 // @access  Private/Admin
-export const getUserDetails = async (req, res) => {
+export const getUserDetails = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id).select('-password');
 
@@ -194,17 +188,14 @@ export const getUserDetails = async (req, res) => {
     });
   } catch (error) {
     console.error('Get user details error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching user details'
-    });
+    next(error);
   }
 };
 
 // @desc    Update user status (ban/unban)
 // @route   PUT /api/admin/users/:id/status
 // @access  Private/Admin
-export const updateUserStatus = async (req, res) => {
+export const updateUserStatus = async (req, res, next) => {
   try {
     const { isActive, isBanned } = req.body;
 
@@ -228,17 +219,14 @@ export const updateUserStatus = async (req, res) => {
     });
   } catch (error) {
     console.error('Update user status error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error updating user status'
-    });
+    next(error);
   }
 };
 
 // @desc    Adjust user tokens
 // @route   POST /api/admin/users/:id/tokens
 // @access  Private/Admin
-export const adjustUserTokens = async (req, res) => {
+export const adjustUserTokens = async (req, res, next) => {
   try {
     const { amount, reason } = req.body;
 
@@ -295,17 +283,14 @@ export const adjustUserTokens = async (req, res) => {
     });
   } catch (error) {
     console.error('Adjust tokens error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error adjusting tokens'
-    });
+    next(error);
   }
 };
 
 // @desc    Get all sessions with filters
 // @route   GET /api/admin/sessions
 // @access  Private/Admin
-export const getAllSessions = async (req, res) => {
+export const getAllSessions = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
@@ -337,17 +322,14 @@ export const getAllSessions = async (req, res) => {
     });
   } catch (error) {
     console.error('Get sessions error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching sessions'
-    });
+    next(error);
   }
 };
 
 // @desc    Cancel session (admin action)
 // @route   DELETE /api/admin/sessions/:id
 // @access  Private/Admin
-export const cancelSession = async (req, res) => {
+export const cancelSession = async (req, res, next) => {
   try {
     const { reason } = req.body;
 
@@ -396,17 +378,14 @@ export const cancelSession = async (req, res) => {
     });
   } catch (error) {
     console.error('Cancel session error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error cancelling session'
-    });
+    next(error);
   }
 };
 
 // @desc    Get platform analytics
 // @route   GET /api/admin/analytics
 // @access  Private/Admin
-export const getAnalytics = async (req, res) => {
+export const getAnalytics = async (req, res, next) => {
   try {
     const { period = '30d' } = req.query; // 7d, 30d, 90d, 1y
 
@@ -585,9 +564,6 @@ export const getAnalytics = async (req, res) => {
     });
   } catch (error) {
     console.error('Get analytics error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching analytics'
-    });
+    next(error);
   }
 };

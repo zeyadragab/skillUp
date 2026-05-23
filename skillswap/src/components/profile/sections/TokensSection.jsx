@@ -15,11 +15,13 @@ import {
   ChevronRight
 } from "lucide-react";
 import { useUser } from "../../context/UserContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { transactionsAPI } from "../../../services/api";
 import { motion, AnimatePresence } from "framer-motion";
 
 const TokensSection = memo(({ fullPage = false }) => {
   const { user } = useUser();
+  const { t } = useLanguage();
   const [transactions, setTransactions] = useState([]);
   const [summary, setSummary] = useState({
     totalEarned: 0,
@@ -55,7 +57,7 @@ const TokensSection = memo(({ fullPage = false }) => {
       setSummary(response.summary || { totalEarned: 0, totalSpent: 0 });
     } catch (err) {
       console.error('Error loading transactions:', err);
-      setError('Failed to load transactions');
+      setError(t('tokens_failed_load'));
     } finally {
       setLoading(false);
     }
@@ -74,15 +76,15 @@ const TokensSection = memo(({ fullPage = false }) => {
            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
            <div className="relative z-10">
               <div className="flex items-center justify-between mb-8">
-                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">Available Fuel</p>
+                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">{t('tokens_available_fuel')}</p>
                  <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                     <Coins className="w-5 h-5" />
                  </div>
               </div>
               <h3 className="text-4xl font-black text-white mb-2">{balance}</h3>
-              <p className="text-xs font-bold text-white/30 uppercase tracking-widest mb-8">Total Skills Tokens</p>
+              <p className="text-xs font-bold text-white/30 uppercase tracking-widest mb-8">{t('tokens_total_tokens')}</p>
               <button className="w-full py-4 bg-primary text-white rounded-2xl font-black text-sm shadow-xl shadow-primary/20 hover:bg-primary-hover transition-all">
-                 Purchase More
+                 {t('tokens_purchase_more')}
               </button>
            </div>
         </div>
@@ -91,7 +93,7 @@ const TokensSection = memo(({ fullPage = false }) => {
         <div className="p-8 bg-white border border-border rounded-[40px] hover:shadow-xl hover:shadow-secondary/5 transition-all group">
            <div className="flex items-start justify-between mb-8">
               <div>
-                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted mb-2">Total Earned</p>
+                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted mb-2">{t('tokens_earned')}</p>
                  <h3 className="text-3xl font-black text-text-main group-hover:text-secondary transition-colors">+{totalEarned}</h3>
               </div>
               <div className="w-12 h-12 bg-secondary/5 rounded-2xl flex items-center justify-center text-secondary group-hover:rotate-12 transition-transform">
@@ -107,7 +109,7 @@ const TokensSection = memo(({ fullPage = false }) => {
         <div className="p-8 bg-white border border-border rounded-[40px] hover:shadow-xl hover:shadow-accent/5 transition-all group">
            <div className="flex items-start justify-between mb-8">
               <div>
-                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted mb-2">Total Spent</p>
+                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted mb-2">{t('tokens_spent')}</p>
                  <h3 className="text-3xl font-black text-text-main group-hover:text-accent transition-colors">-{totalSpent}</h3>
               </div>
               <div className="w-12 h-12 bg-accent/5 rounded-2xl flex items-center justify-center text-accent group-hover:-rotate-12 transition-transform">
@@ -124,8 +126,8 @@ const TokensSection = memo(({ fullPage = false }) => {
       <div className={fullPage ? "bg-white p-10 rounded-[48px] border border-border" : ""}>
         <div className="flex items-center justify-between mb-10">
           <div>
-            <h3 className="text-2xl font-black text-text-main tracking-tight">Ledger history</h3>
-            <p className="text-text-muted font-bold text-xs uppercase tracking-widest mt-1">Detailed transaction logs</p>
+            <h3 className="text-2xl font-black text-text-main tracking-tight">{t('tokens_ledger_history')}</h3>
+            <p className="text-text-muted font-bold text-xs uppercase tracking-widest mt-1">{t('tokens_transaction_logs')}</p>
           </div>
           <button className="p-4 bg-bg-alt text-text-muted hover:text-text-main rounded-2xl transition-all">
             <Filter className="w-5 h-5" />
@@ -137,13 +139,13 @@ const TokensSection = memo(({ fullPage = false }) => {
             {loading ? (
               <div className="flex flex-col items-center justify-center py-20">
                 <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
-                <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Syncing Ledger...</p>
+                <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">{t('tokens_syncing')}</p>
               </div>
             ) : transactions.length === 0 ? (
               <div className="py-20 text-center bg-bg-alt rounded-[32px] border-2 border-dashed border-border px-8">
                 <Zap className="w-12 h-12 text-primary/20 mx-auto mb-4" />
-                <h4 className="text-xl font-black text-text-main mb-2">No activities recorded</h4>
-                <p className="text-text-muted font-medium max-w-xs mx-auto">Complete a session or top up your wallet to start your journey.</p>
+                <h4 className="text-xl font-black text-text-main mb-2">{t('tokens_no_activities')}</h4>
+                <p className="text-text-muted font-medium max-w-xs mx-auto">{t('tokens_complete_session')}</p>
               </div>
             ) : (
               transactions.map((tx, idx) => (
@@ -169,7 +171,7 @@ const TokensSection = memo(({ fullPage = false }) => {
                             <span>{tx.date}</span>
                          </div>
                          <div className="text-[10px] font-black text-primary uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
-                            View Receipt <ChevronRight className="inline-block w-3 h-3" />
+                            {t('tokens_view_receipt')} <ChevronRight className="inline-block w-3 h-3" />
                          </div>
                       </div>
                     </div>
@@ -187,7 +189,7 @@ const TokensSection = memo(({ fullPage = false }) => {
 
         {fullPage && !loading && transactions.length > 0 && (
           <button className="w-full py-5 mt-10 border-2 border-border border-dashed rounded-[32px] text-xs font-black text-text-muted hover:border-primary hover:text-primary transition-all uppercase tracking-widest">
-            Load Older Transactions
+            {t('tokens_load_older')}
           </button>
         )}
       </div>

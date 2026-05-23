@@ -1,13 +1,22 @@
-import SessionSummary from '../models/SessionSummary.js';
-import Session from '../models/Session.js';
-import { generateSessionSummary, isOpenAIConfigured } from '../services/aiSummaryService.js';
-import { queueSummaryGeneration, getJobStatus } from '../services/summaryQueue.js';
-import { transcribeAgoraRecording, isWhisperAvailable } from '../services/whisperService.js';
+import SessionSummary from "../models/SessionSummary.js";
+import Session from "../models/Session.js";
+import {
+  generateSessionSummary,
+  isOpenAIConfigured,
+} from "../services/aiSummaryService.js";
+import {
+  queueSummaryGeneration,
+  getJobStatus,
+} from "../services/summaryQueue.js";
+import {
+  transcribeAgoraRecording,
+  isWhisperAvailable,
+} from "../services/whisperService.js";
 
 // @desc    Generate AI summary for a completed session
 // @route   POST /api/summaries/generate/:sessionId
 // @access  Private (participants only)
-export const generateSummary = async (req, res) => {
+export const generateSummary = async (req, res, next) => {
   try {
     const { sessionId } = req.params;
     const { transcript } = req.body; // Array of transcript entries
@@ -16,18 +25,21 @@ export const generateSummary = async (req, res) => {
     if (!isOpenAIConfigured()) {
       return res.status(503).json({
         success: false,
-        message: 'AI summary service is not configured. Please contact administrator.'
+        message:
+          "AI summary service is not configured. Please contact administrator.",
       });
     }
 
     // Get session
-    const session = await Session.findById(sessionId)
-      .populate('teacher learner', 'name email');
+    const session = await Session.findById(sessionId).populate(
+      "teacher learner",
+      "name email",
+    );
 
     if (!session) {
       return res.status(404).json({
         success: false,
-        message: 'Session not found'
+        message: "Session not found",
       });
     }
 
@@ -40,26 +52,26 @@ export const generateSummary = async (req, res) => {
     if (!isParticipant) {
       return res.status(403).json({
         success: false,
-        message: 'You are not a participant of this session'
+        message: "You are not a participant of this session",
       });
     }
 
     // Check if session is completed
-    if (session.status !== 'completed') {
+    if (session.status !== "completed") {
       return res.status(400).json({
         success: false,
-        message: 'Can only generate summaries for completed sessions'
+        message: "Can only generate summaries for completed sessions",
       });
     }
 
     // Check if summary already exists
     let sessionSummary = await SessionSummary.findOne({ session: sessionId });
 
-    if (sessionSummary && sessionSummary.processingStatus === 'completed') {
+    if (sessionSummary && sessionSummary.processingStatus === "completed") {
       return res.status(200).json({
         success: true,
-        message: 'Summary already exists',
-        summary: sessionSummary
+        message: "Summary already exists",
+        summary: sessionSummary,
       });
     }
 
@@ -67,10 +79,10 @@ export const generateSummary = async (req, res) => {
     if (!sessionSummary) {
       sessionSummary = await SessionSummary.create({
         session: sessionId,
-        processingStatus: 'processing'
+        processingStatus: "processing",
       });
     } else {
-      sessionSummary.processingStatus = 'processing';
+      sessionSummary.processingStatus = "processing";
       await sessionSummary.save();
     }
 
@@ -82,8 +94,8 @@ export const generateSummary = async (req, res) => {
           skill: session.skill,
           duration: session.duration,
           teacherName: session.teacher.name,
-          learnerName: session.learner.name
-        }
+          learnerName: session.learner.name,
+        },
       });
 
       // Update session summary with AI results
@@ -91,38 +103,34 @@ export const generateSummary = async (req, res) => {
       sessionSummary.summary = aiResult.summary;
       sessionSummary.analysis = aiResult.analysis;
       sessionSummary.statistics = aiResult.statistics;
-      sessionSummary.processingStatus = 'completed';
+      sessionSummary.processingStatus = "completed";
       sessionSummary.generatedAt = new Date();
 
       await sessionSummary.save();
 
       res.status(200).json({
         success: true,
-        message: 'AI summary generated successfully',
-        summary: sessionSummary
+        message: "AI summary generated successfully",
+        summary: sessionSummary,
       });
     } catch (error) {
       // Update processing status to failed
-      sessionSummary.processingStatus = 'failed';
+      sessionSummary.processingStatus = "failed";
       sessionSummary.processingError = error.message;
       await sessionSummary.save();
 
       throw error;
     }
   } catch (error) {
-    console.error('Generate summary error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error generating AI summary',
-      error: error.message
-    });
+    console.error("Generate summary error:", error);
+    next(error);
   }
 };
 
 // @desc    Get session summary
 // @route   GET /api/summaries/:sessionId
 // @access  Private (participants only)
-export const getSummary = async (req, res) => {
+export const getSummary = async (req, res, next) => {
   try {
     const { sessionId } = req.params;
 
@@ -132,7 +140,7 @@ export const getSummary = async (req, res) => {
     if (!session) {
       return res.status(404).json({
         success: false,
-        message: 'Session not found'
+        message: "Session not found",
       });
     }
 
@@ -145,50 +153,49 @@ export const getSummary = async (req, res) => {
     if (!isParticipant) {
       return res.status(403).json({
         success: false,
-        message: 'You are not a participant of this session'
+        message: "You are not a participant of this session",
       });
     }
 
     // Get summary
-    const summary = await SessionSummary.findOne({ session: sessionId })
-      .populate('session', 'title skill duration scheduledAt teacher learner');
+    const summary = await SessionSummary.findOne({
+      session: sessionId,
+    }).populate("session", "title skill duration scheduledAt teacher learner");
 
     if (!summary) {
       return res.status(404).json({
         success: false,
-        message: 'Summary not found for this session'
+        message: "Summary not found for this session",
       });
     }
 
     res.status(200).json({
       success: true,
-      summary
+      summary,
     });
   } catch (error) {
-    console.error('Get summary error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching summary',
-      error: error.message
-    });
+    console.error("Get summary error:", error);
+    next(error);
   }
 };
 
 // @desc    Generate mock summary for testing (with sample transcript)
 // @route   POST /api/summaries/mock/:sessionId
 // @access  Private (participants only)
-export const generateMockSummary = async (req, res) => {
+export const generateMockSummary = async (req, res, next) => {
   try {
     const { sessionId } = req.params;
 
     // Get session
-    const session = await Session.findById(sessionId)
-      .populate('teacher learner', 'name email');
+    const session = await Session.findById(sessionId).populate(
+      "teacher learner",
+      "name email",
+    );
 
     if (!session) {
       return res.status(404).json({
         success: false,
-        message: 'Session not found'
+        message: "Session not found",
       });
     }
 
@@ -201,7 +208,7 @@ export const generateMockSummary = async (req, res) => {
     if (!isParticipant) {
       return res.status(403).json({
         success: false,
-        message: 'You are not a participant of this session'
+        message: "You are not a participant of this session",
       });
     }
 
@@ -212,107 +219,103 @@ export const generateMockSummary = async (req, res) => {
     req.body.transcript = mockTranscript;
     return generateSummary(req, res);
   } catch (error) {
-    console.error('Generate mock summary error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error generating mock summary',
-      error: error.message
-    });
+    console.error("Generate mock summary error:", error);
+    next(error);
   }
 };
 
 // Helper function to generate mock transcript
 function generateMockTranscript(session) {
-  const skill = session.skill || 'Programming';
-  const teacherName = session.teacher?.name || 'Teacher';
-  const learnerName = session.learner?.name || 'Learner';
+  const skill = session.skill || "Programming";
+  const teacherName = session.teacher?.name || "Teacher";
+  const learnerName = session.learner?.name || "Learner";
 
   return [
     {
-      speaker: 'teacher',
+      speaker: "teacher",
       speakerName: teacherName,
       text: `Hello! Welcome to our ${skill} session today. How are you doing?`,
-      timestamp: 0
+      timestamp: 0,
     },
     {
-      speaker: 'learner',
+      speaker: "learner",
       speakerName: learnerName,
       text: `Hi! I'm doing great, thank you. I'm excited to learn more about ${skill}.`,
-      timestamp: 5
+      timestamp: 5,
     },
     {
-      speaker: 'teacher',
+      speaker: "teacher",
       speakerName: teacherName,
       text: `Excellent! Today we'll cover the fundamentals and work through some practical examples. Do you have any specific questions or topics you'd like to focus on?`,
-      timestamp: 12
+      timestamp: 12,
     },
     {
-      speaker: 'learner',
+      speaker: "learner",
       speakerName: learnerName,
       text: `Yes, I'd like to understand the best practices and maybe see some real-world applications.`,
-      timestamp: 22
+      timestamp: 22,
     },
     {
-      speaker: 'teacher',
+      speaker: "teacher",
       speakerName: teacherName,
       text: `Perfect! Let's start with the basics and build up from there. The key concept to understand is...`,
-      timestamp: 30
+      timestamp: 30,
     },
     {
-      speaker: 'teacher',
+      speaker: "teacher",
       speakerName: teacherName,
       text: `Now, let me show you a practical example. This is how you would implement this in a real project...`,
-      timestamp: 180
+      timestamp: 180,
     },
     {
-      speaker: 'learner',
+      speaker: "learner",
       speakerName: learnerName,
       text: `That makes sense! So if I wanted to apply this to my project, would I...?`,
-      timestamp: 240
+      timestamp: 240,
     },
     {
-      speaker: 'teacher',
+      speaker: "teacher",
       speakerName: teacherName,
       text: `Exactly! You're getting it. Let me show you another technique that can help...`,
-      timestamp: 270
+      timestamp: 270,
     },
     {
-      speaker: 'learner',
+      speaker: "learner",
       speakerName: learnerName,
       text: `Wow, that's really helpful. I have a question about the implementation...`,
-      timestamp: 320
+      timestamp: 320,
     },
     {
-      speaker: 'teacher',
+      speaker: "teacher",
       speakerName: teacherName,
       text: `Great question! The answer is... and here's why it works this way...`,
-      timestamp: 330
+      timestamp: 330,
     },
     {
-      speaker: 'teacher',
+      speaker: "teacher",
       speakerName: teacherName,
       text: `For homework, I'd like you to practice what we learned today. Try implementing this on your own and let me know if you have any questions.`,
-      timestamp: 500
+      timestamp: 500,
     },
     {
-      speaker: 'learner',
+      speaker: "learner",
       speakerName: learnerName,
       text: `Will do! Thank you so much for the clear explanations. This was really valuable.`,
-      timestamp: 520
+      timestamp: 520,
     },
     {
-      speaker: 'teacher',
+      speaker: "teacher",
       speakerName: teacherName,
       text: `You're welcome! You did a great job today. Keep practicing and feel free to reach out if you need help.`,
-      timestamp: 530
-    }
+      timestamp: 530,
+    },
   ];
 }
 
 // @desc    Export summary as PDF
 // @route   GET /api/summaries/:sessionId/pdf
 // @access  Private (participants only)
-export const exportSummaryPDF = async (req, res) => {
+export const exportSummaryPDF = async (req, res, next) => {
   try {
     const { sessionId } = req.params;
 
@@ -321,7 +324,7 @@ export const exportSummaryPDF = async (req, res) => {
     if (!session) {
       return res.status(404).json({
         success: false,
-        message: 'Session not found'
+        message: "Session not found",
       });
     }
 
@@ -334,58 +337,60 @@ export const exportSummaryPDF = async (req, res) => {
     if (!isParticipant) {
       return res.status(403).json({
         success: false,
-        message: 'You are not a participant of this session'
+        message: "You are not a participant of this session",
       });
     }
 
     // Get summary
-    const summary = await SessionSummary.findOne({ session: sessionId })
-      .populate({
-        path: 'session',
-        populate: [
-          { path: 'teacher', select: 'name email' },
-          { path: 'learner', select: 'name email' }
-        ]
-      });
+    const summary = await SessionSummary.findOne({
+      session: sessionId,
+    }).populate({
+      path: "session",
+      populate: [
+        { path: "teacher", select: "name email" },
+        { path: "learner", select: "name email" },
+      ],
+    });
 
     if (!summary) {
       return res.status(404).json({
         success: false,
-        message: 'Summary not found'
+        message: "Summary not found",
       });
     }
 
     // Generate PDF
     const pdfBuffer = await generatePDF(summary);
 
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=session-summary-${sessionId}.pdf`);
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=session-summary-${sessionId}.pdf`,
+    );
     res.send(pdfBuffer);
   } catch (error) {
-    console.error('Export PDF error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error exporting PDF',
-      error: error.message
-    });
+    console.error("Export PDF error:", error);
+    next(error);
   }
 };
 
 // @desc    Email summary to participants
 // @route   POST /api/summaries/:sessionId/email
 // @access  Private (participants only)
-export const emailSummary = async (req, res) => {
+export const emailSummary = async (req, res, next) => {
   try {
     const { sessionId } = req.params;
 
     // Get session to verify access
-    const session = await Session.findById(sessionId)
-      .populate('teacher learner', 'name email');
+    const session = await Session.findById(sessionId).populate(
+      "teacher learner",
+      "name email",
+    );
 
     if (!session) {
       return res.status(404).json({
         success: false,
-        message: 'Session not found'
+        message: "Session not found",
       });
     }
 
@@ -398,7 +403,7 @@ export const emailSummary = async (req, res) => {
     if (!isParticipant) {
       return res.status(403).json({
         success: false,
-        message: 'You are not a participant of this session'
+        message: "You are not a participant of this session",
       });
     }
 
@@ -407,7 +412,7 @@ export const emailSummary = async (req, res) => {
     if (!summary) {
       return res.status(404).json({
         success: false,
-        message: 'Summary not found'
+        message: "Summary not found",
       });
     }
 
@@ -416,68 +421,89 @@ export const emailSummary = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Summary emailed to both participants'
+      message: "Summary emailed to both participants",
     });
   } catch (error) {
-    console.error('Email summary error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error sending email',
-      error: error.message
-    });
+    console.error("Email summary error:", error);
+    next(error);
   }
 };
 
 // Helper: Generate PDF from summary
 async function generatePDF(summary) {
-  const PDFDocument = require('pdfkit');
+  const PDFDocument = require("pdfkit");
   const doc = new PDFDocument({ margin: 50 });
 
   const chunks = [];
-  doc.on('data', chunk => chunks.push(chunk));
+  doc.on("data", (chunk) => chunks.push(chunk));
 
   return new Promise((resolve, reject) => {
-    doc.on('end', () => resolve(Buffer.concat(chunks)));
-    doc.on('error', reject);
+    doc.on("end", () => resolve(Buffer.concat(chunks)));
+    doc.on("error", reject);
 
     // Header
-    doc.fontSize(24).fillColor('#6366f1').text('AI Session Summary', { align: 'center' });
+    doc
+      .fontSize(24)
+      .fillColor("#6366f1")
+      .text("AI Session Summary", { align: "center" });
     doc.moveDown();
 
     // Session info
     const session = summary.session;
-    doc.fontSize(12).fillColor('#000000');
+    doc.fontSize(12).fillColor("#000000");
     doc.text(`Skill: ${session.skill}`, { continued: false });
     doc.text(`Teacher: ${session.teacher?.name}`, { continued: false });
     doc.text(`Learner: ${session.learner?.name}`, { continued: false });
-    doc.text(`Date: ${new Date(session.scheduledAt).toLocaleDateString()}`, { continued: false });
+    doc.text(`Date: ${new Date(session.scheduledAt).toLocaleDateString()}`, {
+      continued: false,
+    });
     doc.moveDown(2);
 
     // Overall Rating
-    doc.fontSize(16).fillColor('#6366f1').text('Overall Rating', { underline: true });
-    doc.fontSize(32).fillColor('#000000').text(`${summary.analysis.overallRating.toFixed(1)}/10`, { align: 'center' });
+    doc
+      .fontSize(16)
+      .fillColor("#6366f1")
+      .text("Overall Rating", { underline: true });
+    doc
+      .fontSize(32)
+      .fillColor("#000000")
+      .text(`${summary.analysis.overallRating.toFixed(1)}/10`, {
+        align: "center",
+      });
     doc.moveDown(2);
 
     // Overview
-    doc.fontSize(16).fillColor('#6366f1').text('Overview', { underline: true });
+    doc.fontSize(16).fillColor("#6366f1").text("Overview", { underline: true });
     doc.moveDown(0.5);
-    doc.fontSize(11).fillColor('#000000').text(summary.summary.overview);
+    doc.fontSize(11).fillColor("#000000").text(summary.summary.overview);
     doc.moveDown(2);
 
     // Scores
-    doc.fontSize(16).fillColor('#6366f1').text('Scores', { underline: true });
+    doc.fontSize(16).fillColor("#6366f1").text("Scores", { underline: true });
     doc.moveDown(0.5);
-    doc.fontSize(11).fillColor('#000000');
-    doc.text(`• Engagement: ${summary.analysis.engagement.score.toFixed(1)}/10`);
-    doc.text(`• Teaching Quality: ${summary.analysis.teachingQuality.score.toFixed(1)}/10`);
-    doc.text(`• Learning Progress: ${summary.analysis.learningProgress.score.toFixed(1)}/10`);
+    doc.fontSize(11).fillColor("#000000");
+    doc.text(
+      `• Engagement: ${summary.analysis.engagement.score.toFixed(1)}/10`,
+    );
+    doc.text(
+      `• Teaching Quality: ${summary.analysis.teachingQuality.score.toFixed(1)}/10`,
+    );
+    doc.text(
+      `• Learning Progress: ${summary.analysis.learningProgress.score.toFixed(1)}/10`,
+    );
     doc.moveDown(2);
 
     // Key Learning Points
-    if (summary.summary.keyLearningPoints && summary.summary.keyLearningPoints.length > 0) {
-      doc.fontSize(16).fillColor('#6366f1').text('Key Learning Points', { underline: true });
+    if (
+      summary.summary.keyLearningPoints &&
+      summary.summary.keyLearningPoints.length > 0
+    ) {
+      doc
+        .fontSize(16)
+        .fillColor("#6366f1")
+        .text("Key Learning Points", { underline: true });
       doc.moveDown(0.5);
-      doc.fontSize(11).fillColor('#000000');
+      doc.fontSize(11).fillColor("#000000");
       summary.summary.keyLearningPoints.forEach((point, i) => {
         doc.text(`${i + 1}. ${point}`);
       });
@@ -485,10 +511,16 @@ async function generatePDF(summary) {
     }
 
     // Recommendations
-    if (summary.analysis.recommendations && summary.analysis.recommendations.length > 0) {
-      doc.fontSize(16).fillColor('#6366f1').text('Recommendations', { underline: true });
+    if (
+      summary.analysis.recommendations &&
+      summary.analysis.recommendations.length > 0
+    ) {
+      doc
+        .fontSize(16)
+        .fillColor("#6366f1")
+        .text("Recommendations", { underline: true });
       doc.moveDown(0.5);
-      doc.fontSize(11).fillColor('#000000');
+      doc.fontSize(11).fillColor("#000000");
       summary.analysis.recommendations.forEach((rec, i) => {
         doc.text(`${i + 1}. ${rec}`);
       });
@@ -496,8 +528,13 @@ async function generatePDF(summary) {
 
     // Footer
     doc.moveDown(3);
-    doc.fontSize(9).fillColor('#666666').text('Generated by SkillSwap AI', { align: 'center' });
-    doc.text(`Generated on ${new Date().toLocaleString()}`, { align: 'center' });
+    doc
+      .fontSize(9)
+      .fillColor("#666666")
+      .text("Generated by skillup AI", { align: "center" });
+    doc.text(`Generated on ${new Date().toLocaleString()}`, {
+      align: "center",
+    });
 
     doc.end();
   });
@@ -505,7 +542,7 @@ async function generatePDF(summary) {
 
 // Helper: Send summary emails
 async function sendSummaryEmails(summary, session) {
-  const nodemailer = require('nodemailer');
+  const nodemailer = require("nodemailer");
 
   const transporter = nodemailer.createTransporter({
     host: process.env.EMAIL_HOST,
@@ -513,8 +550,8 @@ async function sendSummaryEmails(summary, session) {
     secure: false,
     auth: {
       user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD
-    }
+      pass: process.env.EMAIL_PASSWORD,
+    },
   });
 
   const emailHTML = `
@@ -565,18 +602,18 @@ async function sendSummaryEmails(summary, session) {
           <div class="section">
             <h3>💡 Key Learning Points</h3>
             <ul>
-              ${summary.summary.keyLearningPoints?.map(point => `<li>${point}</li>`).join('') || '<li>No learning points recorded</li>'}
+              ${summary.summary.keyLearningPoints?.map((point) => `<li>${point}</li>`).join("") || "<li>No learning points recorded</li>"}
             </ul>
           </div>
 
           <div class="section">
             <h3>✨ AI Recommendations</h3>
-            ${summary.analysis.recommendations?.map(rec => `<div class="recommendation">${rec}</div>`).join('') || '<p>No recommendations available</p>'}
+            ${summary.analysis.recommendations?.map((rec) => `<div class="recommendation">${rec}</div>`).join("") || "<p>No recommendations available</p>"}
           </div>
 
           <div class="footer">
-            <p>Generated by SkillSwap AI • ${new Date().toLocaleString()}</p>
-            <p>Visit <a href="${process.env.FRONTEND_URL}/sessions/${session._id}/summary" style="color: #6366f1;">SkillSwap</a> to view the full summary</p>
+            <p>Generated by skillup AI • ${new Date().toLocaleString()}</p>
+            <p>Visit <a href="${process.env.FRONTEND_URL}/sessions/${session._id}/summary" style="color: #6366f1;">skillup</a> to view the full summary</p>
           </div>
         </div>
       </div>
@@ -587,7 +624,7 @@ async function sendSummaryEmails(summary, session) {
   // Send to both participants
   const emails = [
     { to: session.teacher.email, name: session.teacher.name },
-    { to: session.learner.email, name: session.learner.name }
+    { to: session.learner.email, name: session.learner.name },
   ];
 
   for (const recipient of emails) {
@@ -595,7 +632,7 @@ async function sendSummaryEmails(summary, session) {
       from: process.env.EMAIL_FROM,
       to: recipient.to,
       subject: `✨ AI Summary: ${session.skill} Session`,
-      html: emailHTML
+      html: emailHTML,
     });
   }
 }
@@ -603,19 +640,21 @@ async function sendSummaryEmails(summary, session) {
 // @desc    Queue summary generation (background job)
 // @route   POST /api/summaries/queue/:sessionId
 // @access  Private (participants only)
-export const queueSummary = async (req, res) => {
+export const queueSummary = async (req, res, next) => {
   try {
     const { sessionId } = req.params;
     const { transcript, recordingUrl } = req.body;
 
     // Get session
-    const session = await Session.findById(sessionId)
-      .populate('teacher learner', 'name email');
+    const session = await Session.findById(sessionId).populate(
+      "teacher learner",
+      "name email",
+    );
 
     if (!session) {
       return res.status(404).json({
         success: false,
-        message: 'Session not found'
+        message: "Session not found",
       });
     }
 
@@ -628,15 +667,15 @@ export const queueSummary = async (req, res) => {
     if (!isParticipant) {
       return res.status(403).json({
         success: false,
-        message: 'You are not a participant of this session'
+        message: "You are not a participant of this session",
       });
     }
 
     // Check if session is completed
-    if (session.status !== 'completed') {
+    if (session.status !== "completed") {
       return res.status(400).json({
         success: false,
-        message: 'Can only generate summaries for completed sessions'
+        message: "Can only generate summaries for completed sessions",
       });
     }
 
@@ -644,15 +683,17 @@ export const queueSummary = async (req, res) => {
 
     // If recording URL provided and Whisper is available, transcribe first
     if (recordingUrl && isWhisperAvailable()) {
-      console.log('[Summary Controller] Transcribing recording with Whisper API...');
+      console.log(
+        "[Summary Controller] Transcribing recording with Whisper API...",
+      );
       try {
         transcriptData = await transcribeAgoraRecording(recordingUrl, {
           teacherName: session.teacher.name,
-          learnerName: session.learner.name
+          learnerName: session.learner.name,
         });
-        console.log('[Summary Controller] ✅ Transcription completed');
+        console.log("[Summary Controller] ✅ Transcription completed");
       } catch (error) {
-        console.error('[Summary Controller] Transcription failed:', error);
+        console.error("[Summary Controller] Transcription failed:", error);
         // Fall back to mock transcript if transcription fails
         transcriptData = null;
       }
@@ -663,24 +704,23 @@ export const queueSummary = async (req, res) => {
 
     res.status(202).json({
       success: true,
-      message: 'Summary generation queued',
-      jobId: job.id,
-      status: 'processing'
+      message:
+        job?.mode === "fallback"
+          ? "Summary generation started (in-process)"
+          : "Summary generation queued",
+      jobId: job?.id || null,
+      status: "processing",
     });
   } catch (error) {
-    console.error('Queue summary error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error queueing summary generation',
-      error: error.message
-    });
+    console.error("Queue summary error:", error);
+    next(error);
   }
 };
 
 // @desc    Get job status
 // @route   GET /api/summaries/job-status/:sessionId
 // @access  Private (participants only)
-export const getJobStatusEndpoint = async (req, res) => {
+export const getJobStatusEndpoint = async (req, res, next) => {
   try {
     const { sessionId } = req.params;
 
@@ -688,15 +728,11 @@ export const getJobStatusEndpoint = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      jobStatus: status
+      jobStatus: status,
     });
   } catch (error) {
-    console.error('Get job status error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error getting job status',
-      error: error.message
-    });
+    console.error("Get job status error:", error);
+    next(error);
   }
 };
 
@@ -707,5 +743,5 @@ export default {
   exportSummaryPDF,
   emailSummary,
   queueSummary,
-  getJobStatusEndpoint
+  getJobStatusEndpoint,
 };

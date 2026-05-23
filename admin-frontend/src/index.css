@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+@theme {
+  /* Canvas — deep slate with a faint cool undertone */
+  --color-canvas:       oklch(13%   0.010 260);
+  --color-panel:        oklch(19%   0.013 260);
+  --color-panel-hi:     oklch(23%   0.015 260);
+
+  /* Navigation rail — darkest layer */
+  --color-rail:         oklch(10%   0.008 260);
+  --color-rail-hi:      oklch(21%   0.013 260);
+  --color-rail-lo:      oklch(25%   0.016 260);
+
+  /* Accent — warm amber (unchanged from light) */
+  --color-accent:       oklch(68%   0.17  55);
+  --color-accent-hi:    oklch(62%   0.19  55);
+  --color-accent-dim:   oklch(28%   0.055 55);
+
+  /* Borders */
+  --color-edge:         oklch(28%   0.015 260);
+  --color-edge-2:       oklch(36%   0.018 260);
+
+  /* Type hierarchy */
+  --color-fg-1:         oklch(93%   0.006 65);
+  --color-fg-2:         oklch(66%   0.008 260);
+  --color-fg-3:         oklch(46%   0.008 260);
+  --color-fg-inv:       oklch(95%   0.005 65);   /* always near-white, for text on dark surfaces */
+  --color-fg-rail:      oklch(52%   0.008 260);
+
+  /* Status — lighter tones for dark backgrounds */
+  --color-err:          oklch(63%   0.20  25);
+  --color-err-bg:       oklch(22%   0.065 25);
+  --color-warn:         oklch(67%   0.18  55);
+  --color-warn-bg:      oklch(22%   0.055 55);
+  --color-ok:           oklch(60%   0.18  145);
+  --color-ok-bg:        oklch(20%   0.060 145);
+  --color-note:         oklch(57%   0.14  235);
+  --color-note-bg:      oklch(20%   0.048 235);
+}
+
+html {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: oklch(13% 0.010 260);
+  color: oklch(93% 0.006 65);
+}
+
+/* ─── Keyframes ──────────────────────────────────────────────────────────── */
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+@keyframes live-ring {
+  0%   { box-shadow: 0 0 0 0   oklch(60% 0.18 145 / 0.6); }
+  70%  { box-shadow: 0 0 0 6px oklch(60% 0.18 145 / 0);   }
+  100% { box-shadow: 0 0 0 0   oklch(60% 0.18 145 / 0);   }
+}
+
+@keyframes item-exit {
+  to { opacity: 0; transform: translateX(-14px); }
+}
+
+/* ─── Animation utilities ────────────────────────────────────────────────── */
+
+.animate-slide-up {
+  animation: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.35s ease-out both;
+}
+
+.animate-live-ring {
+  animation: live-ring 2s ease-out infinite;
+}
+
+.item-exit {
+  animation: item-exit 0.28s cubic-bezier(0.55, 0, 1, 0.45) forwards;
+  pointer-events: none;
+}
+
+/* ─── Skeleton shimmer (dark-tuned) ─────────────────────────────────────── */
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    oklch(23% 0.014 260) 25%,
+    oklch(30% 0.020 260) 50%,
+    oklch(23% 0.014 260) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+/* ─── Column card elevation ──────────────────────────────────────────────── */
+
+.column-card {
+  box-shadow:
+    inset 0 1px 0 oklch(32% 0.018 260),  /* top-edge highlight */
+    0 0 0 1px oklch(26% 0.014 260),       /* ring border */
+    0 12px 32px -4px oklch(0% 0 0 / 0.40);
+}
+
+/* ─── Reduced motion ─────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

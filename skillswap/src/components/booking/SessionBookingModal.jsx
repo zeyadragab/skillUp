@@ -22,6 +22,17 @@ const SessionBookingModal = ({ isOpen, onClose, teacher, skill, onSuccess }) => 
 
   const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
 
+  const generateDefaultSlots = () => {
+    const slots = [];
+    for (let hour = 9; hour < 17; hour++) {
+      slots.push({
+        startTime: `${hour.toString().padStart(2, '0')}:00`,
+        endTime: `${(hour + 1).toString().padStart(2, '0')}:00`
+      });
+    }
+    return slots;
+  };
+
   useEffect(() => {
     if (isOpen && teacher) {
       fetchWeeklyAvailability();
@@ -65,18 +76,15 @@ const SessionBookingModal = ({ isOpen, onClose, teacher, skill, onSuccess }) => 
         date: selectedDate.toISOString(),
         duration
       });
-      setAvailableSlots(response.data.availableSlots);
+      const slots = response.data.availableSlots;
+      if (slots && slots.length > 0) {
+        setAvailableSlots(slots);
+      } else {
+        setAvailableSlots(generateDefaultSlots());
+      }
     } catch (error) {
       console.error('Fetch slots error:', error);
-      // Generate default time slots (9 AM to 5 PM)
-      const defaultSlots = [];
-      for (let hour = 9; hour < 17; hour++) {
-        defaultSlots.push({
-          startTime: `${hour.toString().padStart(2, '0')}:00`,
-          endTime: `${(hour + 1).toString().padStart(2, '0')}:00`
-        });
-      }
-      setAvailableSlots(defaultSlots);
+      setAvailableSlots(generateDefaultSlots());
     } finally {
       setLoading(false);
     }
@@ -204,7 +212,7 @@ const SessionBookingModal = ({ isOpen, onClose, teacher, skill, onSuccess }) => 
           </div>
 
           {/* Progress Steps */}
-          <div className="px-6 py-4 bg-gray-50 border-b">
+          <div className="px-6 py-4 bg-gray-50 border-b" dir="ltr">
             <div className="flex items-center justify-center gap-2">
               {[1, 2, 3, 4].map((num) => (
                 <div key={num} className="flex items-center">
@@ -229,8 +237,8 @@ const SessionBookingModal = ({ isOpen, onClose, teacher, skill, onSuccess }) => 
             </div>
             <div className="flex justify-between mt-2 text-xs text-gray-600">
               <span>Date</span>
-              <span>Time</span>
               <span>Duration</span>
+              <span>Time</span>
               <span>Confirm</span>
             </div>
           </div>

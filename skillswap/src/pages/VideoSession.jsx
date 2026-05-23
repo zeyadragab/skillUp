@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef, memo, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import AgoraRTC from "agora-rtc-sdk-ng";
+import io from "socket.io-client";
 import { toast } from "react-toastify";
 import { sessionAPI, recordingAPI } from "../services/api";
+import { useUser } from "../components/context/UserContext";
+import SessionChat from "../components/session/SessionChat";
 import {
   Mic,
   MicOff,
@@ -23,17 +26,25 @@ import {
   Info,
   ChevronRight,
   ShieldAlert,
-  Target
+  Target,
+  AlertTriangle,
+  X,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const VideoSession = () => {
   const { sessionId } = useParams();
   const navigate = useNavigate();
+  const { user } = useUser();
+  const currentUserId = (user?.id || user?._id)?.toString() || '';
+  const currentUserName = user?.name || user?.username || 'You';
 
   // Refs
   const clientRef = useRef(null);
   const localVideoRef = useRef(null);
+  const remoteVideoRefs = useRef({});
+  const socketRef = useRef(null);
+  const showChatRef = useRef(false);
 
   // Session state
   const [session, setSession] = useState(null);
@@ -54,8 +65,71 @@ const VideoSession = () => {
   const [screenSharing, setScreenSharing] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
 
+  // Chat state
+  const [chatMessages, setChatMessages] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Bad-word detection alert state
+  const [badWordAlert, setBadWordAlert] = useState(null); // { warning, flaggedWords }
+  const badWordDismissTimer = useRef(null);
+  const pendingMessageRef = useRef(null); // optimistic message text awaiting server echo
+
   // Timer state
   const [timeRemaining, setTimeRemaining] = useState(null);
+
+  // Keep showChatRef in sync to avoid stale closures in socket callback
+  useEffect(() => { showChatRef.current = showChat; }, [showChat]);
+
+  // Socket.io session chat connection
+  useEffect(() => {
+    if (!sessionId || !currentUserId) return;
+    const SOCKET_URL = import.meta.env.VITE_API_URL
+      ? import.meta.env.VITE_API_URL.replace('/api', '')
+      : 'http://localhost:5000';
+    socketRef.current = io(SOCKET_URL, { transports: ['websocket'] });
+    socketRef.current.emit('join-session-chat', { sessionId, userId: currentUserId, userName: currentUserName });
+    socketRef.current.on('session-chat-message', (data) => {
+      // If this echo matches the pending optimistic message, it was not flagged — clear it
+      if (pendingMessageRef.current && data.userId === currentUserId) {
+        pendingMessageRef.current = null;
+      }
+      setChatMessages((prev) => [...prev, data]);
+      if (!showChatRef.current && data.userId !== currentUserId) {
+        setUnreadCount((prev) => prev + 1);
+      }
+    });
+
+    socketRef.current.on('bad-word-detected', ({ flaggedWords, warning }) => {
+      // Drop the optimistic message that was held back — server rejected it
+      pendingMessageRef.current = null;
+      // Show the inline alert
+      setBadWordAlert({ warning, flaggedWords: flaggedWords || [] });
+      // Auto-dismiss after 5 seconds
+      if (badWordDismissTimer.current) clearTimeout(badWordDismissTimer.current);
+      badWordDismissTimer.current = setTimeout(() => {
+        setBadWordAlert(null);
+        badWordDismissTimer.current = null;
+      }, 5000);
+    });
+
+    return () => {
+      if (badWordDismissTimer.current) clearTimeout(badWordDismissTimer.current);
+      socketRef.current?.emit('leave-session-chat', { sessionId, userId: currentUserId, userName: currentUserName });
+      socketRef.current?.disconnect();
+    };
+  }, [sessionId, currentUserId]);
+
+  const handleSendChatMessage = useCallback((messageText) => {
+    if (!messageText.trim() || !socketRef.current) return;
+    // Store message so we can suppress it if bad-word-detected arrives before server echo
+    pendingMessageRef.current = messageText.trim();
+    socketRef.current.emit('session-chat-message', {
+      sessionId,
+      message: messageText,
+      userId: currentUserId,
+      userName: currentUserName,
+    });
+  }, [sessionId, currentUserId, currentUserName]);
 
   // Initialize Agora client
   useEffect(() => {
@@ -73,13 +147,15 @@ const VideoSession = () => {
         setSession(response.session);
         setCredentials(response.videoCredentials);
 
-        const sessionEnd = new Date(response.session.scheduledAt).getTime() + response.session.duration * 60 * 1000;
+        const sessionEnd =
+          new Date(response.session.scheduledAt).getTime() +
+          response.session.duration * 60 * 1000;
         const remaining = sessionEnd - Date.now();
         setTimeRemaining(Math.max(0, Math.floor(remaining / 1000)));
 
         setLoading(false);
       } catch (error) {
-        toast.error("Access Window Expired or Invalid Protocol");
+        toast.error("Session access expired or invalid");
         navigate("/sessions");
       }
     };
@@ -90,7 +166,34 @@ const VideoSession = () => {
   useEffect(() => {
     if (!credentials || joined) return;
     const initializeAgora = async () => {
+      const handleUserPublished = async (user, mediaType) => {
+        try {
+          await clientRef.current.subscribe(user, mediaType);
+          if (mediaType === "video") {
+            setRemoteUsers((prev) => {
+              const exists = prev.find((u) => u.uid === user.uid);
+              return exists
+                ? prev.map((u) => (u.uid === user.uid ? user : u))
+                : [...prev, user];
+            });
+          }
+          if (mediaType === "audio") user.audioTrack?.play();
+        } catch (error) {
+          console.error(`Failed to subscribe to user ${user.uid} (${mediaType}):`, error);
+        }
+      };
+      const handleUserUnpublished = (user, mediaType) => {
+        if (mediaType === "video")
+          setRemoteUsers((prev) => prev.filter((u) => u.uid !== user.uid));
+      };
+      const handleUserLeft = (user) =>
+        setRemoteUsers((prev) => prev.filter((u) => u.uid !== user.uid));
+
       try {
+        clientRef.current.on("user-published", handleUserPublished);
+        clientRef.current.on("user-unpublished", handleUserUnpublished);
+        clientRef.current.on("user-left", handleUserLeft);
+
         const [audioTrack, videoTrack] = await Promise.all([
           AgoraRTC.createMicrophoneAudioTrack(),
           AgoraRTC.createCameraVideoTrack(),
@@ -105,43 +208,31 @@ const VideoSession = () => {
           credentials.appId,
           credentials.channelName,
           credentials.rtcToken,
-          parseInt(credentials.userId)
+          parseInt(credentials.userId),
         );
 
         await clientRef.current.publish([audioTrack, videoTrack]);
         setJoined(true);
       } catch (error) {
-        toast.error("Hardware Protocol Failure: Check Camera/Mic Permissions");
+        toast.error("Media Access Error: Please check camera and microphone permissions");
       }
     };
     initializeAgora();
   }, [credentials, joined]);
 
-  // Handle remote users
+  // Replay remote video tracks if videoTrack arrives after the div mounts
   useEffect(() => {
-    if (!clientRef.current) return;
-    const handleUserPublished = async (user, mediaType) => {
-      await clientRef.current.subscribe(user, mediaType);
-      if (mediaType === "video") {
-        setRemoteUsers((prev) => prev.find(u => u.uid === user.uid) ? prev : [...prev, user]);
+    remoteUsers.forEach((user) => {
+      const container = remoteVideoRefs.current[user.uid];
+      if (container && user.videoTrack && !user.videoTrack.isPlaying) {
+        try {
+          user.videoTrack.play(container);
+        } catch (error) {
+          console.error(`Failed to play video for user ${user.uid}:`, error);
+        }
       }
-      if (mediaType === "audio") user.audioTrack?.play();
-    };
-    const handleUserUnpublished = (user, mediaType) => {
-      if (mediaType === "video") setRemoteUsers((prev) => prev.filter((u) => u.uid !== user.uid));
-    };
-    const handleUserLeft = (user) => setRemoteUsers((prev) => prev.filter((u) => u.uid !== user.uid));
-
-    clientRef.current.on("user-published", handleUserPublished);
-    clientRef.current.on("user-unpublished", handleUserUnpublished);
-    clientRef.current.on("user-left", handleUserLeft);
-
-    return () => {
-      clientRef.current.off("user-published", handleUserPublished);
-      clientRef.current.off("user-unpublished", handleUserUnpublished);
-      clientRef.current.off("user-left", handleUserLeft);
-    };
-  }, []);
+    });
+  }, [remoteUsers]);
 
   // Timer countdown
   useEffect(() => {
@@ -176,9 +267,9 @@ const VideoSession = () => {
     try {
       await recordingAPI.startRecording(sessionId);
       setIsRecording(true);
-      toast.success("AI Session Logging Started");
+      toast.success("Recording started");
     } catch {
-      toast.error("Logger Sync Failed");
+      toast.error("Failed to start recording");
     }
   };
 
@@ -186,26 +277,60 @@ const VideoSession = () => {
     try {
       await recordingAPI.stopRecording(sessionId);
       setIsRecording(false);
-      toast.info("Logger Finalizing... Data being synced to cloud.");
+      toast.info("Recording saved and being processed");
     } catch {
-      toast.error("Logger Sync Error");
+      toast.error("Error stopping recording");
     }
   };
+
+  const screenTrackRef = useRef(null);
 
   const toggleScreenShare = async () => {
     try {
       if (!screenSharing) {
+        // Create screen track
         const screenTrack = await AgoraRTC.createScreenVideoTrack();
-        await clientRef.current.unpublish([localVideoTrack]);
+        screenTrackRef.current = screenTrack;
+
+        // Handle native "Stop Sharing" button in browser
+        screenTrack.on("track-ended", () => {
+          stopScreenShare();
+        });
+
+        // Unpublish camera, publish screen
+        if (localVideoTrack) {
+          await clientRef.current.unpublish([localVideoTrack]);
+        }
         await clientRef.current.publish([screenTrack]);
+        
         setScreenSharing(true);
+        toast.info("Screen sharing active");
       } else {
-        await clientRef.current.unpublish();
-        await clientRef.current.publish([localVideoTrack, localAudioTrack]);
-        setScreenSharing(false);
+        await stopScreenShare();
       }
-    } catch {
-      toast.error("Screen Transfer Interrupted");
+    } catch (error) {
+      console.error("Screen share error:", error);
+      toast.error("Could not start screen share");
+    }
+  };
+
+  const stopScreenShare = async () => {
+    try {
+      if (screenTrackRef.current) {
+        await clientRef.current.unpublish([screenTrackRef.current]);
+        screenTrackRef.current.close();
+        screenTrackRef.current = null;
+      }
+      
+      // Re-publish camera if it's supposed to be on
+      if (localVideoTrack && !cameraOff) {
+        await clientRef.current.publish([localVideoTrack]);
+      }
+      
+      setScreenSharing(false);
+      toast.info("Screen sharing stopped");
+    } catch (error) {
+      console.error("Stop screen share error:", error);
     }
   };
 
@@ -217,7 +342,11 @@ const VideoSession = () => {
         localVideoTrack?.close();
         localAudioTrack?.close();
       }
-      navigate(`/sessions/${sessionId}/summary`);
+      const isMentor =
+        session?.teacherId?.toString() === currentUserId ||
+        session?.teacher?._id?.toString() === currentUserId ||
+        session?.teacher?.toString() === currentUserId;
+      navigate(isMentor ? `/sessions/${sessionId}/mentor-debrief` : `/sessions/${sessionId}/summary`);
     } catch {
       navigate("/sessions");
     }
@@ -231,251 +360,336 @@ const VideoSession = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center">
-         <div className="relative w-24 h-24 mb-8">
-            <div className="absolute inset-0 border-4 border-primary/10 rounded-full" />
-            <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} className="absolute inset-0 border-4 border-t-primary rounded-full" />
-         </div>
-         <p className="text-[10px] font-black text-white uppercase tracking-[0.4em] animate-pulse">Initializing Signal...</p>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-[#0a0a0c]">
+        <div className="relative w-20 h-20 mb-6">
+          <div className="absolute inset-0 border-2 rounded-full border-white/5" />
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+            className="absolute inset-0 border-2 rounded-full border-t-indigo-500"
+          />
+        </div>
+        <p className="text-sm font-medium text-white/40 tracking-tight">
+          Connecting to session...
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-screen bg-black overflow-hidden font-sans">
-      {/* TOP DECK - SYSTEM STATUS */}
-      <header className="fixed top-0 left-0 w-full z-[100] p-6 lg:p-8 pointer-events-none">
-         <div className="max-w-[1920px] mx-auto flex items-start justify-between">
-            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-               <div className="flex items-center gap-4 bg-white/5 backdrop-blur-3xl border border-white/10 p-4 rounded-3xl pointer-events-auto">
-                  <div className="w-12 h-12 bg-primary/20 rounded-2xl flex items-center justify-center text-primary group">
-                     <Zap className="w-6 h-6 group-hover:rotate-12 transition-transform" />
-                  </div>
-                  <div>
-                     <h1 className="text-xs font-black text-white uppercase tracking-widest">{session?.skill}</h1>
-                     <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Protocol Stream: {sessionId.substr(0, 8)}</p>
-                  </div>
-               </div>
-            </motion.div>
+    <div className="flex flex-col h-screen overflow-hidden font-sans bg-[#0a0a0c] text-white">
+      {/* HEADER: COMPACT ON MOBILE */}
+      <header className="fixed top-0 left-0 w-full z-[100] px-4 py-3 lg:px-6 lg:py-4 flex items-center justify-between pointer-events-none">
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-2 lg:gap-4 px-3 py-1.5 lg:px-4 lg:py-2 bg-white/[0.03] backdrop-blur-md border border-white/10 rounded-xl lg:rounded-2xl pointer-events-auto"
+        >
+          <div className="w-8 h-8 lg:w-10 lg:h-10 bg-indigo-500/20 rounded-lg lg:rounded-xl flex items-center justify-center">
+            <Zap className="w-4 h-4 lg:w-5 lg:h-5 text-indigo-400" />
+          </div>
+          <div>
+            <h1 className="text-[11px] lg:text-sm font-semibold tracking-tight truncate max-w-[80px] lg:max-w-none">
+              {session?.skill}
+            </h1>
+            <p className="text-[9px] lg:text-[11px] font-medium text-white/30 uppercase tracking-wider">
+              Live
+            </p>
+          </div>
+        </motion.div>
 
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex flex-col items-end gap-3">
-               <div className="bg-white/5 backdrop-blur-3xl border border-white/10 px-6 py-4 rounded-3xl pointer-events-auto flex items-center gap-4">
-                  <div className="text-right">
-                     <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Signal Remaining</p>
-                     <p className={`text-2xl font-black tracking-tighter ${timeRemaining < 300 ? "text-red-500 animate-pulse" : "text-white"}`}>{formatTime(timeRemaining)}</p>
-                  </div>
-                  <Clock className={`w-6 h-6 ${timeRemaining < 300 ? "text-red-500" : "text-white/40"}`} />
-               </div>
-               
-               {isRecording && (
-                 <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 px-4 py-2 rounded-full pointer-events-auto">
-                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                    <span className="text-[10px] font-black text-red-500 uppercase tracking-widest">Neural Logging Active</span>
-                 </motion.div>
-               )}
-            </motion.div>
-         </div>
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-2"
+        >
+          {isRecording && (
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded-full">
+              <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
+              <span className="text-[11px] font-bold text-red-400 uppercase">Recording</span>
+            </div>
+          )}
+          <div className="flex items-center gap-3 lg:gap-4 px-3 py-1.5 lg:px-4 lg:py-2 bg-white/[0.03] backdrop-blur-md border border-white/10 rounded-xl lg:rounded-2xl pointer-events-auto">
+            <div className="text-right">
+              <p className="hidden lg:block text-[10px] font-bold text-white/30 uppercase tracking-tight">Remaining</p>
+              <p className={`text-sm lg:text-lg font-bold tabular-nums ${timeRemaining < 300 ? "text-red-400" : "text-white"}`}>
+                {formatTime(timeRemaining)}
+              </p>
+            </div>
+            <Clock className={`w-4 h-4 lg:w-5 lg:h-5 ${timeRemaining < 300 ? "text-red-400" : "text-white/20"}`} />
+          </div>
+        </motion.div>
       </header>
 
-      {/* MAIN SIGNAL GRID */}
-      <main className="flex-1 relative bg-[radial-gradient(circle_at_center,rgba(124,58,237,0.05),transparent)]">
-         <div className={`h-full w-full p-6 lg:p-12 transition-all duration-700 grid gap-6 ${
-           remoteUsers.length > 0 ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1"
-         }`}>
-            {/* LOCAL SIGNAL */}
-            <motion.div 
-               layout
-               className="relative rounded-[48px] overflow-hidden bg-white/5 border border-white/10 group shadow-2xl"
-            >
-               {localVideoTrack && !cameraOff ? (
-                 <div ref={localVideoRef} className="w-full h-full object-cover grayscale-0 group-hover:grayscale-[0.2] transition-all duration-1000" />
-               ) : (
-                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-900">
-                    <div className="w-40 h-40 bg-white/5 rounded-[60px] flex items-center justify-center text-white/10 mb-6">
-                       <VideoOff className="w-16 h-16" />
-                    </div>
-                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em]">Signal Dormant</p>
-                 </div>
-               )}
-               
-               <div className="absolute top-6 left-6 flex items-center gap-3">
-                  <div className="px-4 py-2 bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center gap-2">
-                     <div className={`w-1.5 h-1.5 rounded-full ${cameraOff ? "bg-red-500" : "bg-emerald-500"}`} />
-                     <span className="text-[10px] font-black text-white uppercase tracking-widest">You (Alpha Node)</span>
-                  </div>
-                  {micMuted && (
-                    <div className="w-10 h-10 bg-red-500/20 text-red-500 rounded-2xl flex items-center justify-center backdrop-blur-xl">
-                       <MicOff className="w-4 h-4" />
-                    </div>
-                  )}
-               </div>
-            </motion.div>
-
-            {/* REMOTE SIGNALs */}
-            {remoteUsers.map((user) => (
-              <motion.div
-                key={user.uid}
-                layout
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="relative rounded-[48px] overflow-hidden bg-white/5 border border-white/10 group shadow-2xl"
-              >
+      {/* MAIN VIDEO AREA */}
+      <main className="flex-1 relative flex items-center justify-center overflow-hidden pt-16 pb-28 lg:pt-0 lg:pb-0">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.05),transparent_50%)]" />
+        
+        {/* MAIN VIDEO AREA: SCREEN SHARE (priority) > REMOTE > LOCAL */}
+        <div className="w-full h-full max-w-[1600px] max-h-[900px] px-4 lg:px-12 flex items-center justify-center">
+          {screenSharing && screenTrackRef.current ? (
+            <div className="w-full h-full relative rounded-2xl lg:rounded-[32px] overflow-hidden bg-black border border-white/10 shadow-2xl">
+              <div
+                ref={(ref) => ref && screenTrackRef.current?.play(ref)}
+                className="w-full h-full object-contain bg-zinc-900"
+              />
+              <div className="absolute bottom-4 left-4 lg:bottom-6 lg:left-6 flex items-center gap-3 px-3 py-1.5 lg:px-4 lg:py-2 bg-indigo-500/20 backdrop-blur-lg border border-indigo-500/30 rounded-lg lg:rounded-xl">
+                <Monitor className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-indigo-400" />
+                <span className="text-[10px] lg:text-xs font-semibold uppercase tracking-wide text-indigo-400">
+                  Sharing screen
+                </span>
+              </div>
+            </div>
+          ) : remoteUsers.length > 0 ? (
+            <div className="w-full h-full relative rounded-2xl lg:rounded-[32px] overflow-hidden bg-black border border-white/5 shadow-2xl">
+              {remoteUsers.map((user) => (
                 <div
-                  ref={(ref) => ref && user.videoTrack?.play(ref)}
+                  key={user.uid}
+                  ref={(ref) => {
+                    if (ref) {
+                      remoteVideoRefs.current[user.uid] = ref;
+                      try {
+                        user.videoTrack?.play(ref);
+                      } catch (error) {
+                        console.error(`Failed to play video for user ${user.uid}:`, error);
+                      }
+                    } else {
+                      delete remoteVideoRefs.current[user.uid];
+                    }
+                  }}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute top-6 left-6 flex items-center gap-4">
-                   <div className="px-6 py-3 bg-primary/20 backdrop-blur-3xl border border-primary/30 rounded-3xl flex items-center gap-3">
-                      <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
-                      <span className="text-xs font-black text-white uppercase tracking-widest">
-                         {user.uid === credentials?.teacherId ? "Senior Mentor" : "External Learner"}
-                      </span>
-                   </div>
+              ))}
+              <div className="absolute bottom-4 left-4 lg:bottom-6 lg:left-6 flex items-center gap-3 px-3 py-1.5 lg:px-4 lg:py-2 bg-black/40 backdrop-blur-lg border border-white/10 rounded-lg lg:rounded-xl">
+                <div className="w-2 h-2 bg-indigo-500 rounded-full" />
+                <span className="text-[10px] lg:text-xs font-semibold uppercase tracking-wide">
+                  Participant
+                </span>
+              </div>
+            </div>
+          ) : localVideoTrack && !cameraOff ? (
+            <div className="w-full h-full relative rounded-2xl lg:rounded-[32px] overflow-hidden bg-black border border-white/5 shadow-2xl">
+              <div
+                ref={localVideoRef}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-black/20 pointer-events-none" />
+              <div className="absolute bottom-12 left-0 w-full flex flex-col items-center justify-center p-8 text-center pointer-events-none">
+                <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10">
+                  <p className="text-[11px] font-bold text-white/60 uppercase tracking-widest animate-pulse">
+                    Waiting for others to join...
+                  </p>
                 </div>
-              </motion.div>
-            ))}
+              </div>
+            </div>
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center bg-white/[0.02] border border-white/5 rounded-2xl lg:rounded-[32px] border-dashed p-8">
+              <div className="w-16 h-16 lg:w-20 lg:h-20 bg-indigo-500/5 rounded-full flex items-center justify-center mb-4 lg:mb-6">
+                <Users className="w-6 h-6 lg:w-8 lg:h-8 text-white/10" />
+              </div>
+              <p className="text-xs lg:text-sm font-medium text-white/30 tracking-tight text-center">
+                Waiting for others to join...
+              </p>
+            </div>
+          )}
+        </div>
 
-            {/* WAITING STATE */}
-            {remoteUsers.length === 0 && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="lg:absolute lg:inset-0 lg:m-12 relative h-full rounded-[48px] bg-white/[0.02] border border-white/[0.05] flex flex-col items-center justify-center border-dashed">
-                 <div className="w-24 h-24 border-2 border-primary/20 rounded-full flex items-center justify-center animate-spin-slow mb-8">
-                    <Target className="w-8 h-8 text-primary/40" />
-                 </div>
-                 <h3 className="text-3xl font-black text-white/20 tracking-tighter uppercase mb-3">Awaiting Handshake</h3>
-                 <p className="text-[8px] font-black text-white/10 uppercase tracking-[0.5em]">Synchronizing Nexus Protocols...</p>
-                 
-                 <div className="absolute bottom-12 flex items-center gap-4 bg-white/5 p-4 rounded-3xl border border-white/10">
-                    <Info className="w-4 h-4 text-primary" />
-                    <p className="text-[10px] font-bold text-white/40 max-w-[200px] leading-relaxed uppercase">
-                       A notification has been broadcast to all authorized nodes. Use the chat hub to ping participants.
-                    </p>
-                 </div>
-              </motion.div>
-            )}
-         </div>
+        {/* LOCAL VIDEO (PIP) - ONLY VISIBLE IF NOT IN MAIN VIEW */}
+        <AnimatePresence>
+          {(remoteUsers.length > 0 || screenSharing) && (
+            <motion.div
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              drag
+              dragConstraints={{ left: -300, right: 300, top: -500, bottom: 500 }}
+              className="absolute bottom-32 right-4 lg:right-12 w-32 lg:w-64 aspect-video rounded-xl lg:rounded-2xl overflow-hidden bg-zinc-900 border border-white/10 shadow-3xl cursor-grab active:cursor-grabbing z-50 group"
+            >
+              {screenSharing && remoteUsers.length > 0 ? (
+                // While screen sharing, show remote user in PIP
+                <div
+                  ref={(ref) => {
+                    if (ref && remoteUsers[0]?.videoTrack) {
+                      try { remoteUsers[0].videoTrack.play(ref); } catch (_) {}
+                    }
+                  }}
+                  className="w-full h-full object-cover"
+                />
+              ) : screenSharing ? (
+                <div className="w-full h-full flex flex-col items-center justify-center bg-indigo-500/10">
+                  <Monitor className="w-4 h-4 lg:w-8 lg:h-8 text-indigo-500/40 mb-1 lg:mb-2" />
+                  <span className="text-[8px] lg:text-[10px] font-bold text-indigo-500/40 uppercase">Sharing</span>
+                </div>
+              ) : localVideoTrack && !cameraOff ? (
+                <div ref={localVideoRef} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-800">
+                  <VideoOff className="w-4 h-4 lg:w-8 lg:h-8 text-white/10 mb-1 lg:mb-2" />
+                  <span className="text-[8px] lg:text-[10px] font-bold text-white/20 uppercase">Off</span>
+                </div>
+              )}
+              <div className="absolute bottom-2 left-2 lg:bottom-3 lg:left-3 flex items-center gap-1.5 lg:gap-2 px-1.5 py-0.5 lg:px-2.5 lg:py-1 bg-black/60 backdrop-blur-md rounded-md lg:rounded-lg">
+                <div className={`w-1 lg:w-1.5 h-1 lg:h-1.5 rounded-full ${screenSharing ? "bg-indigo-500 animate-pulse" : cameraOff ? "bg-red-500" : "bg-emerald-500"}`} />
+                <span className="text-[8px] lg:text-[10px] font-bold text-white/80 uppercase">
+                  {screenSharing ? "Sharing" : "You"}
+                </span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
 
-      {/* FLOATING COMMAND DECK */}
-      <footer className="fixed bottom-0 left-0 w-full p-8 flex justify-center pointer-events-none z-[100]">
-         <motion.div 
-            initial={{ y: 50, opacity: 0 }} 
-            animate={{ y: 0, opacity: 1 }} 
-            className="flex items-center gap-4 bg-zinc-900 p-3 rounded-[32px] border border-white/10 shadow-3xl pointer-events-auto"
-         >
-            {/* Audio Toggle */}
-            <button 
-              onClick={toggleMic}
-              className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${
-                micMuted ? "bg-red-500 text-white" : "bg-white/5 text-white/60 hover:text-white"
-              }`}
-            >
-               {micMuted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
-            </button>
+      {/* FLOATING CONTROL DOCK: ULTRA-COMPACT FOR MOBILE */}
+      <footer className="fixed bottom-0 left-0 w-full p-3 lg:p-10 flex justify-center z-[200]">
+        <motion.div
+          initial={{ y: 40, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="flex items-center gap-1 lg:gap-3 p-1.5 lg:p-2.5 bg-[#151518]/95 backdrop-blur-2xl border border-white/10 rounded-2xl lg:rounded-[28px] shadow-3xl"
+        >
+          <button
+            onClick={toggleMic}
+            className={`w-9 h-9 lg:w-12 lg:h-12 rounded-lg lg:rounded-2xl flex items-center justify-center transition-all ${
+              micMuted ? "bg-red-500/10 text-red-500" : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
+            }`}
+          >
+            {micMuted ? <MicOff className="w-4 h-4 lg:w-5 lg:h-5" /> : <Mic className="w-4 h-4 lg:w-5 lg:h-5" />}
+          </button>
 
-            {/* Video Toggle */}
-            <button 
-              onClick={toggleCamera}
-              className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${
-                cameraOff ? "bg-red-500 text-white" : "bg-white/5 text-white/60 hover:text-white"
-              }`}
-            >
-               {cameraOff ? <VideoOff className="w-6 h-6" /> : <Video className="w-6 h-6" />}
-            </button>
+          <button
+            onClick={toggleCamera}
+            className={`w-9 h-9 lg:w-12 lg:h-12 rounded-lg lg:rounded-2xl flex items-center justify-center transition-all ${
+              cameraOff ? "bg-red-500/10 text-red-500" : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
+            }`}
+          >
+            {cameraOff ? <VideoOff className="w-4 h-4 lg:w-5 lg:h-5" /> : <Video className="w-4 h-4 lg:w-5 lg:h-5" />}
+          </button>
 
-            <div className="w-px h-8 bg-white/10 mx-2" />
+          <div className="w-px h-6 lg:h-8 mx-0.5 lg:mx-1 bg-white/5" />
 
-            {/* Sharing Tools */}
-            <button 
-              onClick={toggleScreenShare}
-              className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${
-                screenSharing ? "bg-primary text-white" : "bg-white/5 text-white/60 hover:text-white"
-              }`}
-            >
-               <Monitor className="w-6 h-6" />
-            </button>
+          <button
+            onClick={toggleScreenShare}
+            className={`w-9 h-9 lg:w-12 lg:h-12 rounded-lg lg:rounded-2xl flex items-center justify-center transition-all ${
+              screenSharing ? "bg-indigo-500 text-white" : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
+            }`}
+          >
+            <Monitor className="w-4 h-4 lg:w-5 lg:h-5" />
+          </button>
 
-            <button 
-              onClick={() => setShowChat(!showChat)}
-              className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${
-                showChat ? "bg-indigo-500 text-white" : "bg-white/5 text-white/60 hover:text-white"
-              }`}
-            >
-               <MessageSquare className="w-6 h-6" />
-            </button>
+          <button
+            onClick={() => { setShowChat(!showChat); if (!showChat) setUnreadCount(0); }}
+            className={`relative w-9 h-9 lg:w-12 lg:h-12 rounded-lg lg:rounded-2xl flex items-center justify-center transition-all ${
+              showChat ? "bg-indigo-500 text-white" : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
+            }`}
+          >
+            <MessageSquare className="w-4 h-4 lg:w-5 lg:h-5" />
+            {!showChat && unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-indigo-500 rounded-full text-[9px] font-bold text-white flex items-center justify-center">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </button>
 
-            <div className="w-px h-8 bg-white/10 mx-2" />
+          <div className="w-px h-6 lg:h-8 mx-0.5 lg:mx-1 bg-white/5" />
 
-            {/* Neural Log Tool */}
-            <button 
-              onClick={isRecording ? stopRecording : startRecording}
-              className={`px-8 h-14 rounded-2xl flex items-center gap-3 transition-all ${
-                isRecording ? "bg-red-500 text-white animate-pulse" : "bg-primary/20 text-primary border border-primary/20"
-              }`}
-            >
-               <CircleDot className={`w-4 h-4 ${isRecording ? "fill-white" : ""}`} />
-               <span className="text-[10px] font-black uppercase tracking-widest hidden sm:block">AI Logging</span>
-            </button>
+          <button
+            onClick={isRecording ? stopRecording : startRecording}
+            className={`flex items-center justify-center lg:gap-3 w-9 lg:w-auto lg:px-6 h-9 lg:h-12 rounded-lg lg:rounded-2xl transition-all ${
+              isRecording ? "bg-red-500/10 text-red-500" : "bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20"
+            }`}
+          >
+            {isRecording ? (
+              <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse lg:hidden" />
+            ) : (
+              <CircleDot className="w-4 h-4 lg:hidden" />
+            )}
+            <div className={`hidden lg:block w-2 h-2 rounded-full ${isRecording ? "bg-red-500 animate-pulse" : "bg-indigo-400/30"}`} />
+            <span className="text-[11px] font-bold uppercase tracking-wider hidden lg:block">
+              {isRecording ? "Stop" : "Record"}
+            </span>
+          </button>
 
-            <div className="w-px h-8 bg-white/10 mx-2" />
+          <div className="w-px h-6 lg:h-8 mx-0.5 lg:mx-1 bg-white/5" />
 
-            {/* End Protoocl */}
-            <button 
-              onClick={handleEndSession}
-              className="w-16 h-16 bg-red-600 text-white rounded-[24px] flex items-center justify-center shadow-2xl shadow-red-600/20 hover:scale-110 active:scale-90 transition-all"
-            >
-               <PhoneOff className="w-8 h-8" />
-            </button>
-         </motion.div>
+          <button
+            onClick={handleEndSession}
+            className="w-11 h-9 lg:w-14 lg:h-12 bg-red-600 hover:bg-red-700 text-white rounded-lg lg:rounded-2xl flex items-center justify-center shadow-xl shadow-red-600/10 transition-transform active:scale-95"
+          >
+            <PhoneOff className="w-5 h-5 lg:w-6 lg:h-6" />
+          </button>
+        </motion.div>
       </footer>
 
-      {/* CHAT HUD OVERLAY */}
+      {/* CHAT OVERLAY: RESPONSIVE WIDTH */}
       <AnimatePresence>
         {showChat && (
-          <motion.div 
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            className="fixed top-0 right-0 w-full max-w-sm h-full bg-zinc-900 border-l border-white/10 z-[200] flex flex-col p-8"
+          <motion.div
+            initial={{ x: "100%", opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: "100%", opacity: 0 }}
+            className="fixed top-0 right-0 w-full sm:w-[400px] h-full bg-[#0d0d0f] border-l border-white/5 z-[300] flex flex-col p-6 shadow-4xl"
           >
-             <div className="flex items-center justify-between mb-12">
-                <div className="flex items-center gap-4">
-                   <div className="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center text-white">
-                      <MessageSquare className="w-5 h-5" />
-                   </div>
-                   <h3 className="text-xs font-black text-white uppercase tracking-widest">Protocol Chat</h3>
-                </div>
-                <button onClick={() => setShowChat(false)} className="w-10 h-10 rounded-xl hover:bg-white/5 flex items-center justify-center text-white/40">
-                   <ChevronRight className="w-5 h-5" />
-                </button>
-             </div>
-             
-             <div className="flex-1 overflow-y-auto space-y-6 pb-24 no-scrollbar">
-                <div className="bg-white/5 p-6 rounded-3xl border border-white/10">
-                   <div className="flex items-center gap-2 mb-2">
-                       <ShieldCheck className="w-3.5 h-3.5 text-primary" />
-                       <span className="text-[10px] font-black text-primary uppercase tracking-widest">System Voice</span>
-                   </div>
-                   <p className="text-xs text-white/60 leading-relaxed font-medium">Neural recording has started. All voice interactions are being indexed for the session summary. Protocol active.</p>
-                </div>
-             </div>
+            {/* BAD-WORD ALERT BANNER */}
+            <AnimatePresence>
+              {badWordAlert && (
+                <motion.div
+                  key="bad-word-alert"
+                  initial={{ y: -16, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: -16, opacity: 0 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  className="mb-3 rounded-xl border border-red-500/30 bg-red-950/60 backdrop-blur-sm px-4 py-3 flex flex-col gap-1.5"
+                  role="alert"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                      <p className="text-[13px] font-semibold text-red-300 leading-snug">
+                        Your message was flagged: {badWordAlert.warning}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        if (badWordDismissTimer.current) {
+                          clearTimeout(badWordDismissTimer.current);
+                          badWordDismissTimer.current = null;
+                        }
+                        setBadWordAlert(null);
+                      }}
+                      className="shrink-0 p-0.5 rounded-md text-white/30 hover:text-white/70 hover:bg-white/10 transition-colors"
+                      aria-label="Dismiss warning"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                  {badWordAlert.flaggedWords.length > 0 && (
+                    <p className="text-[11px] text-white/40 leading-tight pl-6">
+                      Flagged:{" "}
+                      {badWordAlert.flaggedWords.map((word, i) => (
+                        <span key={i} className="font-bold text-amber-400/80">
+                          {word}{i < badWordAlert.flaggedWords.length - 1 ? ", " : ""}
+                        </span>
+                      ))}
+                    </p>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-             <div className="absolute bottom-8 left-8 right-8">
-                <div className="relative">
-                   <input type="text" placeholder="Transmit signal..." className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white outline-none focus:border-primary transition-all" />
-                   <div className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-text-main rounded-xl flex items-center justify-center text-white cursor-pointer hover:bg-primary transition-all">
-                      <Zap className="w-4 h-4 fill-current" />
-                   </div>
-                </div>
-             </div>
+            <SessionChat
+              messages={chatMessages}
+              onSend={handleSendChatMessage}
+              currentUserId={currentUserId}
+              onClose={() => setShowChat(false)}
+            />
           </motion.div>
         )}
       </AnimatePresence>
 
       <style>{`
-        .animate-spin-slow { animation: spin 10s linear infinite; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .shadow-3xl { shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
       `}</style>
     </div>
   );

@@ -199,6 +199,12 @@ export const paymentAPI = {
   getById: async (paymentId) => {
     const { data } = await api.get(`/payments/${paymentId}`);
     return data;
+  },
+
+  // Process alternative payment (non-Stripe)
+  process: async (packageType, paymentMethod, paymentDetails = {}) => {
+    const { data } = await api.post('/payments/process', { packageType, paymentMethod, paymentDetails });
+    return data;
   }
 };
 

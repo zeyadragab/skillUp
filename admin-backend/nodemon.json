@@ -1,0 +1,8 @@
+{
+  "watch": ["src"],
+  "ext": "js,json",
+  "ignore": ["src/logs/*"],
+  "delay": "500",
+  "signal": "SIGTERM",
+  "kill": true
+}

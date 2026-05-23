@@ -6,7 +6,7 @@ import { notifyNewMessage } from '../services/notificationService.js';
 // @desc    Get conversations for logged-in user
 // @route   GET /api/messages/conversations
 // @access  Private
-export const getConversations = async (req, res) => {
+export const getConversations = async (req, res, next) => {
   try {
     const conversations = await Conversation.find({
       participants: req.user._id,
@@ -25,18 +25,14 @@ export const getConversations = async (req, res) => {
     });
   } catch (error) {
     console.error('Get conversations error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching conversations',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Get or create a conversation with another user
 // @route   POST /api/messages/conversations
 // @access  Private
-export const createConversation = async (req, res) => {
+export const createConversation = async (req, res, next) => {
   try {
     const { userId } = req.body;
 
@@ -68,18 +64,14 @@ export const createConversation = async (req, res) => {
     });
   } catch (error) {
     console.error('Create conversation error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error creating conversation',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Get messages in a conversation
 // @route   GET /api/messages/:conversationId
 // @access  Private
-export const getMessages = async (req, res) => {
+export const getMessages = async (req, res, next) => {
   try {
     const { conversationId } = req.params;
     const { limit = 50, skip = 0 } = req.query;
@@ -138,18 +130,14 @@ export const getMessages = async (req, res) => {
     });
   } catch (error) {
     console.error('Get messages error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching messages',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Send a message
 // @route   POST /api/messages
 // @access  Private
-export const sendMessage = async (req, res) => {
+export const sendMessage = async (req, res, next) => {
   try {
     const { conversationId, content, messageType = 'text' } = req.body;
 
@@ -233,18 +221,14 @@ export const sendMessage = async (req, res) => {
     });
   } catch (error) {
     console.error('Send message error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error sending message',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Delete a message
 // @route   DELETE /api/messages/:messageId
 // @access  Private
-export const deleteMessage = async (req, res) => {
+export const deleteMessage = async (req, res, next) => {
   try {
     const { messageId } = req.params;
 
@@ -281,10 +265,6 @@ export const deleteMessage = async (req, res) => {
     });
   } catch (error) {
     console.error('Delete message error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error deleting message',
-      error: error.message
-    });
+    next(error);
   }
 };

@@ -14,7 +14,7 @@ import {
 // @desc    Create new session
 // @route   POST /api/sessions
 // @access  Private (Learner or Teacher)
-export const createSession = async (req, res) => {
+export const createSession = async (req, res, next) => {
   try {
     const {
       teacherId,
@@ -177,18 +177,14 @@ export const createSession = async (req, res) => {
     });
   } catch (error) {
     console.error('Create session error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error creating session',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Get user's sessions
 // @route   GET /api/sessions
 // @access  Private
-export const getSessions = async (req, res) => {
+export const getSessions = async (req, res, next) => {
   try {
     const userId = req.user._id;
     const { status, type, upcoming, past } = req.query;
@@ -230,18 +226,14 @@ export const getSessions = async (req, res) => {
     });
   } catch (error) {
     console.error('Get sessions error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching sessions',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Get single session
 // @route   GET /api/sessions/:id
 // @access  Private
-export const getSession = async (req, res) => {
+export const getSession = async (req, res, next) => {
   try {
     const session = await Session.findById(req.params.id)
       .populate('teacher learner', 'name email avatar averageRating bio skillsToTeach');
@@ -268,18 +260,14 @@ export const getSession = async (req, res) => {
     });
   } catch (error) {
     console.error('Get session error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching session',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Update session
 // @route   PUT /api/sessions/:id
 // @access  Private
-export const updateSession = async (req, res) => {
+export const updateSession = async (req, res, next) => {
   try {
     let session = await Session.findById(req.params.id);
 
@@ -328,18 +316,14 @@ export const updateSession = async (req, res) => {
     });
   } catch (error) {
     console.error('Update session error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error updating session',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Cancel session
 // @route   DELETE /api/sessions/:id/cancel
 // @access  Private
-export const cancelSession = async (req, res) => {
+export const cancelSession = async (req, res, next) => {
   try {
     const session = await Session.findById(req.params.id);
 
@@ -414,18 +398,14 @@ export const cancelSession = async (req, res) => {
     });
   } catch (error) {
     console.error('Cancel session error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error cancelling session',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Rate session
 // @route   POST /api/sessions/:id/rate
 // @access  Private
-export const rateSession = async (req, res) => {
+export const rateSession = async (req, res, next) => {
   try {
     const { rating, review } = req.body;
 
@@ -542,18 +522,14 @@ export const rateSession = async (req, res) => {
     });
   } catch (error) {
     console.error('Rate session error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error rating session',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Join video session (get Agora token)
 // @route   POST /api/sessions/:id/join
 // @access  Private
-export const joinSession = async (req, res) => {
+export const joinSession = async (req, res, next) => {
   try {
     const session = await Session.findById(req.params.id);
 
@@ -603,12 +579,9 @@ export const joinSession = async (req, res) => {
       });
     }
 
-    // Generate Agora credentials
-    // Convert MongoDB ObjectId to a number for Agora (Agora expects numeric UID)
-    // We'll use a hash of the userId string to create a unique integer
-    const numericUserId = Math.abs(userId.split('').reduce((hash, char) => {
-      return ((hash << 5) - hash) + char.charCodeAt(0);
-    }, 0));
+    // Use last 8 hex chars of ObjectId → uint32 (0 to 4294967295, non-zero)
+    const hexSuffix = userId.slice(-8);
+    const numericUserId = (parseInt(hexSuffix, 16) >>> 0) || 1;
 
     const credentials = generateSessionCredentials(
       session._id.toString(),
@@ -649,14 +622,14 @@ export const joinSession = async (req, res) => {
         scheduledAt: session.scheduledAt,
         duration: session.duration
       },
-      videoCredentials: credentials
+      videoCredentials: {
+        ...credentials,
+        channelName: `session_${session._id}`,
+        teacherId: (parseInt(session.teacher.toString().slice(-8), 16) >>> 0) || 1
+      }
     });
   } catch (error) {
     console.error('Join session error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error joining session',
-      error: error.message
-    });
+    next(error);
   }
 };

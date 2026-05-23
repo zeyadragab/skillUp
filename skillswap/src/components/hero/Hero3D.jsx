@@ -20,7 +20,7 @@ const HeroSimulated3D = () => {
           repeat: Infinity, 
           ease: "easeInOut" 
         }}
-        className="relative z-10 w-64 h-64 bg-gradient-to-br from-primary via-indigo-500 to-purple-600 rounded-[60px] shadow-2xl flex items-center justify-center transform-gpu preserve-3d"
+        className="relative z-10 w-64 h-64 bg-linear-to-br from-primary via-indigo-500 to-purple-600 rounded-[60px] shadow-2xl flex items-center justify-center transform-gpu preserve-3d"
         style={{ perspective: 1000 }}
       >
         <GraduationCap className="w-32 h-32 text-white drop-shadow-2xl" />
@@ -64,7 +64,7 @@ const HeroSimulated3D = () => {
               ease: "easeInOut",
               delay: item.delay 
             }}
-            className="p-5 bg-white shadow-2xl rounded-2xl border border-border"
+            className="p-5 bg-white border shadow-2xl rounded-2xl border-border"
           >
             <item.Icon className={`w-8 h-8 ${item.color}`} />
           </motion.div>

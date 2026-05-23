@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useUser } from "../components/context/UserContext";
+import { useLanguage } from "../components/context/LanguageContext";
 import Navbar from "../components/common/Navbar";
 import Footer from "../components/common/Footer";
 import SessionBookingModal from "../components/booking/SessionBookingModal";
@@ -33,6 +34,7 @@ const TeacherProfile = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
   const { user: currentUser } = useUser();
+  const { t } = useLanguage();
   const [teacher, setTeacher] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -119,7 +121,7 @@ const TeacherProfile = () => {
         <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center">
             <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-4" />
-            <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">Locating Master...</p>
+            <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">{t("mentor_locating")}</p>
         </div>
         <Footer />
       </div>
@@ -132,8 +134,8 @@ const TeacherProfile = () => {
         <Navbar />
         <div className="flex flex-col items-center justify-center py-32 text-center px-6">
            <Zap className="w-16 h-16 text-primary/20 mb-6" />
-           <h2 className="text-3xl font-black text-text-main mb-4">Master not found</h2>
-           <button onClick={() => navigate(-1)} className="px-10 py-4 bg-text-main text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-primary transition-all shadow-xl shadow-primary/10">Return to Grid</button>
+           <h2 className="text-3xl font-black text-text-main mb-4">{t("mentor_not_found")}</h2>
+           <button onClick={() => navigate(-1)} className="px-10 py-4 bg-text-main text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-primary transition-all shadow-xl shadow-primary/10">{t("mentor_return_grid")}</button>
         </div>
         <Footer />
       </div>
@@ -151,12 +153,12 @@ const TeacherProfile = () => {
                <div className="w-10 h-10 bg-white border border-border rounded-xl flex items-center justify-center group-hover:-translate-x-1 transition-transform">
                   <ArrowLeft className="w-4 h-4" />
                </div>
-               <span className="text-xs font-black uppercase tracking-widest">Back to Directory</span>
+               <span className="text-xs font-black uppercase tracking-widest">{t("mentor_back_directory")}</span>
             </button>
             <div className="flex items-center space-x-2">
                <button className="hidden sm:flex items-center space-x-2 px-6 py-2.5 bg-white border border-border text-text-muted hover:text-text-main rounded-xl font-black uppercase tracking-widest text-[10px] transition-all">
                   <Sparkles className="w-3 h-3" />
-                  <span>Recommend Profile</span>
+                  <span>{t("mentor_recommend")}</span>
                </button>
             </div>
         </div>
@@ -188,11 +190,11 @@ const TeacherProfile = () => {
                         {/* Content Layer */}
                         <div className="flex-1 text-center lg:text-left">
                             <div className="flex flex-wrap justify-center lg:justify-start gap-3 mb-6">
-                               <span className="px-4 py-1.5 bg-primary/5 text-primary text-[10px] font-black uppercase tracking-widest rounded-full border border-primary/10">Elite Mentor</span>
-                               <span className="px-4 py-1.5 bg-secondary/5 text-secondary text-[10px] font-black uppercase tracking-widest rounded-full border border-secondary/10">Level {teacher.level || 1}</span>
+                               <span className="px-4 py-1.5 bg-primary/5 text-primary text-[10px] font-black uppercase tracking-widest rounded-full border border-primary/10">{t("mentor_elite")}</span>
+                               <span className="px-4 py-1.5 bg-secondary/5 text-secondary text-[10px] font-black uppercase tracking-widest rounded-full border border-secondary/10">{t("mentor_level")} {teacher.level || 1}</span>
                                <span className="px-4 py-1.5 bg-bg-alt text-text-muted text-[10px] font-black uppercase tracking-widest rounded-full border border-border flex items-center gap-1.5">
                                   <Users className="w-3 h-3" />
-                                  {teacher.followers?.length || 0} Followers
+                                  {teacher.followers?.length || 0} {t("mentor_followers")}
                                </span>
                             </div>
 
@@ -233,14 +235,14 @@ const TeacherProfile = () => {
                                   }`}
                                 >
                                    {isFollowing ? <UserCheck className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
-                                   <span>{isFollowing ? "Following" : "Connect"}</span>
+                                   <span>{isFollowing ? t("mentor_following") : t("mentor_connect")}</span>
                                 </button>
                                 <button
                                   onClick={() => navigate(`/chat?userId=${userId}`)}
                                   className="w-full flex items-center justify-center space-x-3 py-5 bg-white border border-border text-text-main rounded-[24px] font-black uppercase tracking-widest text-xs hover:border-primary transition-all group"
                                 >
                                    <MessageCircle className="w-4 h-4 group-hover:text-primary transition-colors" />
-                                   <span>Send Direct</span>
+                                   <span>{t("mentor_send_direct")}</span>
                                 </button>
                             </div>
                         )}
@@ -251,28 +253,28 @@ const TeacherProfile = () => {
                         <div className="flex items-center space-x-4">
                            <div className="w-12 h-12 bg-primary/5 text-primary rounded-2xl flex items-center justify-center"><BookOpen className="w-5 h-5" /></div>
                            <div>
-                              <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">Taught</p>
-                              <p className="text-xl font-black text-text-main">{teacher.totalSessionsTaught || 0} Sessions</p>
+                              <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">{t("mentor_taught")}</p>
+                              <p className="text-xl font-black text-text-main">{teacher.totalSessionsTaught || 0} {t("mentor_sessions_label")}</p>
                            </div>
                         </div>
                         <div className="flex items-center space-x-4">
                            <div className="w-12 h-12 bg-secondary/5 text-secondary rounded-2xl flex items-center justify-center"><Users className="w-5 h-5" /></div>
                            <div>
-                              <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">Impact</p>
-                              <p className="text-xl font-black text-text-main">{teacher.totalStudents || 0} Students</p>
+                              <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">{t("mentor_impact")}</p>
+                              <p className="text-xl font-black text-text-main">{teacher.totalStudents || 0} {t("mentor_students")}</p>
                            </div>
                         </div>
                         <div className="flex items-center space-x-4">
                            <div className="w-12 h-12 bg-accent/5 text-accent rounded-2xl flex items-center justify-center"><TrendingUp className="w-5 h-5" /></div>
                            <div>
-                              <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">Rank</p>
-                              <p className="text-xl font-black text-text-main">Top 1%</p>
+                              <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">{t("mentor_rank")}</p>
+                              <p className="text-xl font-black text-text-main">{t("mentor_top1")}</p>
                            </div>
                         </div>
                         <div className="flex items-center space-x-4">
                            <div className="w-12 h-12 bg-indigo-500/5 text-indigo-500 rounded-2xl flex items-center justify-center"><Award className="w-5 h-5" /></div>
                            <div>
-                              <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">Karma</p>
+                              <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">{t("mentor_karma")}</p>
                               <p className="text-xl font-black text-text-main">{teacher.tokensEarned || "Elite"}</p>
                            </div>
                         </div>
@@ -287,7 +289,7 @@ const TeacherProfile = () => {
             <div className="lg:col-span-2 space-y-10">
                 <div className="flex items-center space-x-3 mb-2">
                    <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center text-primary"><Target className="w-4 h-4" /></div>
-                   <h2 className="text-2xl font-black text-text-main uppercase tracking-widest">Expert Offerings</h2>
+                   <h2 className="text-2xl font-black text-text-main uppercase tracking-widest">{t("mentor_expert_offerings")}</h2>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -311,14 +313,14 @@ const TeacherProfile = () => {
                             <div className="flex items-center space-x-2">
                                <Coins className="w-5 h-5 text-primary" />
                                <span className="text-2xl font-black text-text-main">{skill.tokensPerHour || 50}</span>
-                               <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">/ Hr</span>
+                               <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">{t("mentor_per_hour")}</span>
                             </div>
                             {currentUser?.id !== userId && (
                                <button 
                                  onClick={() => handleBookSession(skill)}
                                  className="px-6 py-3 bg-text-main text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-primary transition-all shadow-lg"
                                >
-                                  Reservice Slot
+                                  {t("mentor_reserve_slot")}
                                </button>
                             )}
                          </div>
@@ -331,7 +333,7 @@ const TeacherProfile = () => {
             <div className="space-y-10">
                 <div className="flex items-center space-x-3 mb-2">
                    <div className="w-8 h-8 bg-secondary/10 rounded-lg flex items-center justify-center text-secondary"><Sparkles className="w-4 h-4" /></div>
-                   <h2 className="text-2xl font-black text-text-main uppercase tracking-widest">Learning List</h2>
+                   <h2 className="text-2xl font-black text-text-main uppercase tracking-widest">{t("mentor_learning_list")}</h2>
                 </div>
 
                 <div className="space-y-4">
@@ -350,9 +352,9 @@ const TeacherProfile = () => {
                 </div>
 
                 <div className="p-8 bg-primary/5 rounded-[40px] border border-primary/10">
-                   <h4 className="text-lg font-black text-text-main mb-3">Swap Wisdom?</h4>
-                   <p className="text-sm text-text-muted font-medium mb-6">If you are an expert in what {teacher.name?.split(' ')[0]} wants to learn, a direct swap might be possible.</p>
-                   <button className="w-full py-4 bg-white text-primary border border-primary/20 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-primary hover:text-white transition-all">Proposed a Skill Swap</button>
+                   <h4 className="text-lg font-black text-text-main mb-3">{t("mentor_swap_wisdom")}</h4>
+                   <p className="text-sm text-text-muted font-medium mb-6">{t("mentor_swap_desc").replace("{name}", teacher.name?.split(' ')[0])}</p>
+                   <button className="w-full py-4 bg-white text-primary border border-primary/20 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-primary hover:text-white transition-all">{t("mentor_propose_swap")}</button>
                 </div>
             </div>
         </div>

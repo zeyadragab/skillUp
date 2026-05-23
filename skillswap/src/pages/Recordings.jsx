@@ -22,7 +22,9 @@ import {
   Zap,
   ArrowUpRight,
   Activity,
-  LayoutDashboard
+  LayoutDashboard,
+  AlertCircle,
+  Video
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -31,6 +33,7 @@ const Recordings = () => {
   const [recordings, setRecordings] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [filter, setFilter] = useState('ready'); // ready, processing, all
   const navigate = useNavigate();
 
@@ -42,12 +45,14 @@ const Recordings = () => {
   const fetchRecordings = async () => {
     try {
       setLoading(true);
+      setError(null);
       const response = await recordingAPI.getRecordings({
         status: filter === 'all' ? undefined : filter,
         limit: 50
       });
       setRecordings(response.data.recordings || []);
-    } catch (error) {
+    } catch (err) {
+      setError(err.message || 'Failed to load recordings');
       toast.error('Sync failed: Could not retrieve footage database');
     } finally {
       setLoading(false);
@@ -171,16 +176,50 @@ const Recordings = () => {
         {/* RECORDINGS GRID */}
         <section className="px-6 mx-auto max-w-7xl">
            {loading ? (
-             <div className="py-32 flex flex-col items-center justify-center">
-                <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-4" />
-                <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">Syncing Flux Records...</p>
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+               {[...Array(6)].map((_, i) => (
+                 <div key={i} className="bg-white rounded-[48px] overflow-hidden border border-border flex flex-col">
+                   {/* thumbnail skeleton */}
+                   <div className="aspect-video bg-gray-700/50 animate-pulse" />
+                   <div className="p-10 flex-1 flex flex-col gap-4">
+                     <div className="h-3 w-24 bg-gray-700/50 animate-pulse rounded-full" />
+                     <div className="h-5 w-3/4 bg-gray-700/50 animate-pulse rounded-full" />
+                     <div className="h-4 w-1/2 bg-gray-700/50 animate-pulse rounded-full" />
+                     <div className="mt-auto pt-6 border-t border-border flex items-center gap-3">
+                       <div className="w-8 h-8 rounded-full bg-gray-700/50 animate-pulse" />
+                       <div className="h-3 w-32 bg-gray-700/50 animate-pulse rounded-full" />
+                     </div>
+                   </div>
+                 </div>
+               ))}
              </div>
+           ) : error ? (
+             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-32 text-center bg-white rounded-[64px] border border-border">
+               <div className="w-24 h-24 bg-red-50 rounded-[40px] flex items-center justify-center mx-auto mb-8">
+                 <AlertCircle className="w-12 h-12 text-red-500" />
+               </div>
+               <h3 className="text-3xl font-black text-text-main mb-3 tracking-tighter">Failed to Load Recordings</h3>
+               <p className="text-text-muted font-medium mb-12">{error}</p>
+               <button
+                 onClick={() => { fetchRecordings(); fetchStats(); }}
+                 className="px-12 py-5 bg-primary text-white rounded-[24px] text-[10px] font-black uppercase tracking-widest shadow-2xl hover:scale-105 active:scale-95 transition-all"
+               >
+                 Retry
+               </button>
+             </motion.div>
            ) : recordings.length === 0 ? (
              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-32 text-center bg-white rounded-[64px] border border-border">
                 <div className="w-24 h-24 bg-bg-alt rounded-[40px] flex items-center justify-center mx-auto mb-8 text-text-muted/30">
-                   <Activity className="w-12 h-12" />
+                   <Video className="w-12 h-12" />
                 </div>
-                <h3 className="text-3xl font-black text-text-main mb-3 tracking-tighter">No Recorded Pulses</h3>
+                <h3 className="text-3xl font-black text-text-main mb-3 tracking-tighter">No Recordings Yet</h3>
+                <p className="text-text-muted font-medium mb-2">
+                  {filter === 'ready'
+                    ? 'You have no ready recordings. Sessions are recorded when both participants enable recording.'
+                    : filter === 'processing'
+                    ? 'No recordings are currently processing.'
+                    : 'You have no session recordings. Complete a session with recording enabled to see it here.'}
+                </p>
                 <p className="text-text-muted font-medium italic mb-12">"Your archive is currently in silent mode."</p>
                 <Link to="/sessions" className="px-12 py-5 bg-text-main text-white rounded-[24px] text-[10px] font-black uppercase tracking-widest shadow-2xl hover:bg-primary transition-all">Go to Live Hub</Link>
              </motion.div>

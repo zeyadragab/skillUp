@@ -7,6 +7,7 @@ import {
 } from "react-router-dom";
 import { UserProvider } from "./components/context/UserContext";
 import { TokenProvider } from "./components/context/TokenContext";
+import { LanguageProvider } from "./components/context/LanguageContext";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import Profile from "./pages/Profile";
 import { ToastContainer } from "react-toastify";
@@ -30,6 +31,7 @@ const RecordingPlayer = lazy(() => import("./pages/RecordingPlayer"));
 const Sessions = lazy(() => import("./pages/Sessions"));
 const SessionDetails = lazy(() => import("./pages/SessionDetails"));
 const SessionSummary = lazy(() => import("./pages/SessionSummary"));
+const MentorDebrief = lazy(() => import("./pages/MentorDebrief"));
 const BuyTokens = lazy(() => import("./pages/BuyTokens"));
 const BrowseTeachers = lazy(() => import("./pages/BrowseTeachers"));
 const Wallet = lazy(() => import("./pages/Wallet"));
@@ -70,6 +72,7 @@ NotFound.displayName = "NotFound";
 // ==================== MAIN APP ====================
 function App() {
   return (
+    <LanguageProvider>
     <UserProvider>
       <TokenProvider>
         <Router>
@@ -211,6 +214,16 @@ function App() {
                 }
               />
 
+              {/* Mentor Debrief Route */}
+              <Route
+                path="/sessions/:sessionId/mentor-debrief"
+                element={
+                  <ProtectedRoute>
+                    <MentorDebrief />
+                  </ProtectedRoute>
+                }
+              />
+
               {/* Recordings Routes */}
               <Route
                 path="/recordings"
@@ -259,6 +272,9 @@ function App() {
                 }
               />
 
+              {/* Redirect legacy /transactions to /buy-tokens */}
+              <Route path="/transactions" element={<Navigate to="/buy-tokens" replace />} />
+
               {/* 404 Route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
@@ -278,6 +294,7 @@ function App() {
         </Router>
       </TokenProvider>
     </UserProvider>
+    </LanguageProvider>
   );
 }
 

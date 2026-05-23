@@ -4,7 +4,7 @@ import User from '../models/User.js';
 // @desc    Get all skills
 // @route   GET /api/skills
 // @access  Public
-export const getAllSkills = async (req, res) => {
+export const getAllSkills = async (req, res, next) => {
   try {
     const { category, search, difficulty, sort = '-popularityScore' } = req.query;
 
@@ -31,18 +31,14 @@ export const getAllSkills = async (req, res) => {
       skills
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching skills',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Get skill by ID
 // @route   GET /api/skills/:id
 // @access  Public
-export const getSkillById = async (req, res) => {
+export const getSkillById = async (req, res, next) => {
   try {
     const skill = await Skill.findById(req.params.id);
 
@@ -58,18 +54,14 @@ export const getSkillById = async (req, res) => {
       skill
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching skill',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Get skills by category
 // @route   GET /api/skills/category/:category
 // @access  Public
-export const getSkillsByCategory = async (req, res) => {
+export const getSkillsByCategory = async (req, res, next) => {
   try {
     const skills = await Skill.find({
       category: req.params.category,
@@ -83,18 +75,14 @@ export const getSkillsByCategory = async (req, res) => {
       skills
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching skills',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Get all categories with skill counts
 // @route   GET /api/skills/categories/list
 // @access  Public
-export const getCategories = async (req, res) => {
+export const getCategories = async (req, res, next) => {
   try {
     const categories = await Skill.aggregate([
       { $match: { isActive: true } },
@@ -139,18 +127,14 @@ export const getCategories = async (req, res) => {
       categories: categoriesWithIcons
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching categories',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Create new skill
 // @route   POST /api/skills
 // @access  Private/Admin
-export const createSkill = async (req, res) => {
+export const createSkill = async (req, res, next) => {
   try {
     const skill = await Skill.create(req.body);
 
@@ -167,18 +151,14 @@ export const createSkill = async (req, res) => {
       });
     }
 
-    res.status(500).json({
-      success: false,
-      message: 'Error creating skill',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Update skill
 // @route   PUT /api/skills/:id
 // @access  Private/Admin
-export const updateSkill = async (req, res) => {
+export const updateSkill = async (req, res, next) => {
   try {
     const skill = await Skill.findByIdAndUpdate(
       req.params.id,
@@ -199,18 +179,14 @@ export const updateSkill = async (req, res) => {
       skill
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error updating skill',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Delete skill
 // @route   DELETE /api/skills/:id
 // @access  Private/Admin
-export const deleteSkill = async (req, res) => {
+export const deleteSkill = async (req, res, next) => {
   try {
     const skill = await Skill.findByIdAndDelete(req.params.id);
 
@@ -226,18 +202,14 @@ export const deleteSkill = async (req, res) => {
       message: 'Skill deleted successfully'
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error deleting skill',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Add skill to user's teaching list
 // @route   POST /api/skills/teach/:id
 // @access  Private
-export const addTeachingSkill = async (req, res) => {
+export const addTeachingSkill = async (req, res, next) => {
   try {
     const { level = 'intermediate', tokensPerHour = 50 } = req.body;
     const skill = await Skill.findById(req.params.id);
@@ -282,18 +254,14 @@ export const addTeachingSkill = async (req, res) => {
       skillsToTeach: user.skillsToTeach
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error adding skill',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Add skill to user's learning list
 // @route   POST /api/skills/learn/:id
 // @access  Private
-export const addLearningSkill = async (req, res) => {
+export const addLearningSkill = async (req, res, next) => {
   try {
     const { level = 'beginner' } = req.body;
     const skill = await Skill.findById(req.params.id);
@@ -337,18 +305,14 @@ export const addLearningSkill = async (req, res) => {
       skillsToLearn: user.skillsToLearn
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error adding skill',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Remove skill from teaching/learning list
 // @route   DELETE /api/skills/user/:skillId
 // @access  Private
-export const removeUserSkill = async (req, res) => {
+export const removeUserSkill = async (req, res, next) => {
   try {
     const { type } = req.query; // 'teach' or 'learn'
     const user = await User.findById(req.user._id);
@@ -367,18 +331,14 @@ export const removeUserSkill = async (req, res) => {
       [skillArray]: user[skillArray]
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error removing skill',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Get popular skills
 // @route   GET /api/skills/popular/top
 // @access  Public
-export const getPopularSkills = async (req, res) => {
+export const getPopularSkills = async (req, res, next) => {
   try {
     const limit = parseInt(req.query.limit) || 10;
 
@@ -392,10 +352,6 @@ export const getPopularSkills = async (req, res) => {
       skills
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching popular skills',
-      error: error.message
-    });
+    next(error);
   }
 };

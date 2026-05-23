@@ -2,6 +2,7 @@ import React, { memo, useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import Navbar from "../components/common/Navbar";
 import TeacherCard from "../components/teachers/TeacherCard";
+import { useLanguage } from "../components/context/LanguageContext";
 import {
   Search,
   Filter,
@@ -38,6 +39,7 @@ const SORT_OPTIONS = [
 ];
 
 const BrowseTeachers = memo(() => {
+  const { t } = useLanguage();
   const [searchParams, setSearchParams] = useSearchParams();
   const [teachers, setTeachers] = useState([]);
   const [filteredTeachers, setFilteredTeachers] = useState([]);
@@ -63,7 +65,7 @@ const BrowseTeachers = memo(() => {
       const token = localStorage.getItem("token");
 
       const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api"}/users/search`,
+        `${import.meta.env.VITE_API_URL || "https://skillupbackend-rouge.vercel.app/api"}/users/search`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -79,7 +81,7 @@ const BrowseTeachers = memo(() => {
       setFilteredTeachers(teachersData);
     } catch (error) {
       console.error("Error fetching teachers:", error);
-      toast.error("Failed to load teachers. Please try again.");
+      toast.error(t("browse_failed_load"));
 
       // Fallback to mock data for development
       const mockTeachers = generateMockTeachers();
@@ -208,11 +210,9 @@ const BrowseTeachers = memo(() => {
 
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
-        <div className="bg-linear-to-r from-indigo-600 via-purple-600 to-pink-500 py-12">
+        <div className="bg-linear-to-r from-indigo-600 via-purple-600 to-pink-500 pt-[72px] pb-12">
           <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
-            <h1 className="mb-4 text-4xl font-bold text-white">
-              Browse All Teachers
-            </h1>
+            <h1 className="mb-4 text-4xl font-bold text-white">Browse All Teachers</h1>
             <p className="text-xl text-indigo-100">
               Find the perfect teacher from our community of {teachers.length} experts
             </p>
@@ -222,7 +222,6 @@ const BrowseTeachers = memo(() => {
         <div className="px-4 py-8 mx-auto max-w-7xl sm:px-6 lg:px-8">
           {/* Search and Filter Bar */}
           <div className="flex flex-col gap-4 mb-8 lg:flex-row lg:items-center lg:justify-between">
-            {/* Search */}
             <div className="relative flex-1 max-w-md">
               <Search className="absolute w-5 h-5 text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
               <input
@@ -233,8 +232,6 @@ const BrowseTeachers = memo(() => {
                 className="w-full py-3 pl-10 pr-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
-
-            {/* Sort and Filter Buttons */}
             <div className="flex gap-3">
               <select
                 value={sortBy}
@@ -242,12 +239,9 @@ const BrowseTeachers = memo(() => {
                 className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 {SORT_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
+                  <option key={option.value} value={option.value}>{option.label}</option>
                 ))}
               </select>
-
               <button
                 onClick={() => setShowFilters(!showFilters)}
                 className="flex items-center gap-2 px-4 py-3 text-white bg-indigo-600 rounded-lg hover:bg-indigo-700"

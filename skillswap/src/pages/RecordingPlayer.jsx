@@ -20,7 +20,8 @@ import {
   HardDrive,
   UserCheck,
   History,
-  FileText
+  FileText,
+  AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -31,6 +32,7 @@ const RecordingPlayer = () => {
   const [recording, setRecording] = useState(null);
   const [playbackUrl, setPlaybackUrl] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [playing, setPlaying] = useState(false);
 
   useEffect(() => {
@@ -40,15 +42,22 @@ const RecordingPlayer = () => {
   const fetchRecording = async () => {
     try {
       setLoading(true);
+      setError(null);
       const res = await recordingAPI.getRecording(id);
       const recData = res.data.recording;
       setRecording(recData);
 
-      const pbRes = await recordingAPI.getPlaybackUrl(id, recData.accessToken);
-      setPlaybackUrl(pbRes.data.playbackUrl);
-    } catch {
+      // playbackUrl may not exist for all recordings (e.g. still processing)
+      try {
+        const pbRes = await recordingAPI.getPlaybackUrl(id, recData.accessToken);
+        setPlaybackUrl(pbRes.data.playbackUrl || null);
+      } catch {
+        // Recording found but playback URL unavailable — show error state
+        setPlaybackUrl(null);
+      }
+    } catch (err) {
+      setError(err.message || 'Recording not available');
       toast.error('Signal Lost: Could not retrieve playback stream');
-      navigate('/recordings');
     } finally {
       setLoading(false);
     }
@@ -72,14 +81,34 @@ const RecordingPlayer = () => {
     );
   }
 
-  if (!recording || !playbackUrl) {
+  if (error || !recording) {
     return (
       <div className="min-h-screen bg-zinc-900 flex flex-col items-center justify-center p-6 text-center">
          <div className="w-20 h-20 bg-red-500/10 text-red-500 rounded-3xl flex items-center justify-center mb-8">
+            <AlertCircle className="w-10 h-10" />
+         </div>
+         <p className="text-2xl font-black text-white mb-3 tracking-tighter uppercase">Recording Not Available</p>
+         <p className="text-white/40 text-sm font-medium mb-8 max-w-sm">{error || 'This recording could not be found.'}</p>
+         <button onClick={() => navigate('/recordings')} className="px-10 py-5 bg-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all">
+            <span className="flex items-center gap-2"><ArrowLeft className="w-4 h-4" /> Back to Recordings</span>
+         </button>
+      </div>
+    );
+  }
+
+  if (!playbackUrl) {
+    return (
+      <div className="min-h-screen bg-zinc-900 flex flex-col items-center justify-center p-6 text-center">
+         <div className="w-20 h-20 bg-amber-500/10 text-amber-400 rounded-3xl flex items-center justify-center mb-8">
             <Zap className="w-10 h-10" />
          </div>
-         <p className="text-2xl font-black text-white mb-8 tracking-tighter uppercase">Signal Signature Inaccessible</p>
-         <button onClick={() => navigate('/recordings')} className="px-10 py-5 bg-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-widest">Return to Archive</button>
+         <p className="text-2xl font-black text-white mb-3 tracking-tighter uppercase">Recording Not Ready</p>
+         <p className="text-white/40 text-sm font-medium mb-8 max-w-sm">
+           This recording is still being processed. Please check back in a few minutes.
+         </p>
+         <button onClick={() => navigate('/recordings')} className="px-10 py-5 bg-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all">
+            <span className="flex items-center gap-2"><ArrowLeft className="w-4 h-4" /> Back to Recordings</span>
+         </button>
       </div>
     );
   }

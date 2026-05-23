@@ -15,7 +15,7 @@ export const activationEmailTemplate = (name, activationLink) => `
           <!-- Header -->
           <tr>
             <td style="padding: 40px 40px 20px 40px; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px 8px 0 0;">
-              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">SkillSwap</h1>
+              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">skillup</h1>
             </td>
           </tr>
 
@@ -24,7 +24,7 @@ export const activationEmailTemplate = (name, activationLink) => `
             <td style="padding: 40px;">
               <h2 style="margin: 0 0 20px 0; color: #333333; font-size: 24px;">Hi ${name}!</h2>
               <p style="margin: 0 0 20px 0; color: #666666; font-size: 16px; line-height: 1.6;">
-                Welcome to SkillSwap! We're excited to have you join our community of learners and teachers.
+                Welcome to skillup! We're excited to have you join our community of learners and teachers.
               </p>
               <p style="margin: 0 0 30px 0; color: #666666; font-size: 16px; line-height: 1.6;">
                 To get started, please activate your account by clicking the button below. This link will expire in <strong>1 hour</strong>.
@@ -45,7 +45,7 @@ export const activationEmailTemplate = (name, activationLink) => `
               </p>
 
               <p style="margin: 30px 0 0 0; color: #999999; font-size: 14px; line-height: 1.6;">
-                If you didn't create an account with SkillSwap, you can safely ignore this email.
+                If you didn't create an account with skillup, you can safely ignore this email.
               </p>
             </td>
           </tr>
@@ -54,7 +54,7 @@ export const activationEmailTemplate = (name, activationLink) => `
           <tr>
             <td style="padding: 30px 40px; background-color: #f8f8f8; border-radius: 0 0 8px 8px; text-align: center;">
               <p style="margin: 0; color: #999999; font-size: 12px;">
-                © ${new Date().getFullYear()} SkillSwap. All rights reserved.
+                © ${new Date().getFullYear()} skillup. All rights reserved.
               </p>
             </td>
           </tr>
@@ -83,7 +83,7 @@ export const otpEmailTemplate = (otp) => `
           <!-- Header -->
           <tr>
             <td style="padding: 40px 40px 20px 40px; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px 8px 0 0;">
-              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">SkillSwap</h1>
+              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">skillup</h1>
             </td>
           </tr>
 
@@ -92,7 +92,7 @@ export const otpEmailTemplate = (otp) => `
             <td style="padding: 40px;">
               <h2 style="margin: 0 0 20px 0; color: #333333; font-size: 24px;">Your Login Code</h2>
               <p style="margin: 0 0 30px 0; color: #666666; font-size: 16px; line-height: 1.6;">
-                Use the following One-Time Password (OTP) to log in to your SkillSwap account. This code will expire in <strong>10 minutes</strong>.
+                Use the following One-Time Password (OTP) to log in to your skillup account. This code will expire in <strong>10 minutes</strong>.
               </p>
 
               <!-- OTP Code -->
@@ -110,7 +110,7 @@ export const otpEmailTemplate = (otp) => `
                 ⚠️ Security Warning
               </p>
               <p style="margin: 10px 0 0 0; color: #999999; font-size: 14px; line-height: 1.6;">
-                Never share this code with anyone. SkillSwap staff will never ask for your OTP.
+                Never share this code with anyone. skillup staff will never ask for your OTP.
               </p>
 
               <p style="margin: 30px 0 0 0; color: #999999; font-size: 14px; line-height: 1.6;">
@@ -123,7 +123,7 @@ export const otpEmailTemplate = (otp) => `
           <tr>
             <td style="padding: 30px 40px; background-color: #f8f8f8; border-radius: 0 0 8px 8px; text-align: center;">
               <p style="margin: 0; color: #999999; font-size: 12px;">
-                © ${new Date().getFullYear()} SkillSwap. All rights reserved.
+                © ${new Date().getFullYear()} skillup. All rights reserved.
               </p>
             </td>
           </tr>
@@ -142,7 +142,7 @@ export const welcomeEmailTemplate = (name) => `
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcome to SkillSwap!</title>
+  <title>Welcome to skillup!</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
   <table role="presentation" style="width: 100%; border-collapse: collapse;">
@@ -152,7 +152,7 @@ export const welcomeEmailTemplate = (name) => `
           <!-- Header -->
           <tr>
             <td style="padding: 40px 40px 20px 40px; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px 8px 0 0;">
-              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">🎉 Welcome to SkillSwap!</h1>
+              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">🎉 Welcome to skillup!</h1>
             </td>
           </tr>
 
@@ -161,7 +161,7 @@ export const welcomeEmailTemplate = (name) => `
             <td style="padding: 40px;">
               <h2 style="margin: 0 0 20px 0; color: #333333; font-size: 24px;">Hi ${name}!</h2>
               <p style="margin: 0 0 20px 0; color: #666666; font-size: 16px; line-height: 1.6;">
-                Your account is now active! You're all set to start your learning journey with SkillSwap.
+                Your account is now active! You're all set to start your learning journey with skillup.
               </p>
 
               <h3 style="margin: 30px 0 15px 0; color: #333333; font-size: 18px;">What's Next?</h3>
@@ -180,7 +180,7 @@ export const welcomeEmailTemplate = (name) => `
               <table role="presentation" style="width: 100%; border-collapse: collapse;">
                 <tr>
                   <td align="center" style="padding: 0;">
-                    <a href="${process.env.FRONTEND_URL}/home" style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold;">Explore SkillSwap</a>
+                    <a href="${process.env.FRONTEND_URL}/home" style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold;">Explore skillup</a>
                   </td>
                 </tr>
               </table>
@@ -191,10 +191,10 @@ export const welcomeEmailTemplate = (name) => `
           <tr>
             <td style="padding: 30px 40px; background-color: #f8f8f8; border-radius: 0 0 8px 8px; text-align: center;">
               <p style="margin: 0 0 10px 0; color: #999999; font-size: 12px;">
-                © ${new Date().getFullYear()} SkillSwap. All rights reserved.
+                © ${new Date().getFullYear()} skillup. All rights reserved.
               </p>
               <p style="margin: 0; color: #999999; font-size: 12px;">
-                Need help? Contact us at support@skillswap.com
+                Need help? Contact us at support@skillup.com
               </p>
             </td>
           </tr>
@@ -229,19 +229,19 @@ export const banEmailTemplate = (name, reason) => `
             <td style="padding: 40px;">
               <h2 style="margin: 0 0 20px 0; color: #333333; font-size: 24px;">Hi ${name},</h2>
               <p style="margin: 0 0 20px 0; color: #666666; font-size: 16px; line-height: 1.6;">
-                We're writing to inform you that your SkillSwap account has been suspended.
+                We're writing to inform you that your skillup account has been suspended.
               </p>
               <div style="background-color: #fee2e2; border-left: 4px solid #dc2626; padding: 16px; margin: 20px 0;">
                 <p style="margin: 0; color: #991b1b; font-size: 16px; line-height: 1.6;">
                   <strong>Reason for Suspension:</strong><br>
-                  ${reason || 'Violation of our Terms of Service'}
+                  ${reason || "Violation of our Terms of Service"}
                 </p>
               </div>
               <h3 style="margin: 30px 0 15px 0; color: #333333; font-size: 18px;">What This Means:</h3>
               <ul style="margin: 0; padding-left: 20px; color: #666666; font-size: 16px; line-height: 1.8;">
                 <li>You will not be able to log in to your account</li>
                 <li>Your scheduled sessions have been cancelled</li>
-                <li>You cannot participate in the SkillSwap marketplace</li>
+                <li>You cannot participate in the skillup marketplace</li>
               </ul>
               <p style="margin: 30px 0 20px 0; color: #666666; font-size: 16px; line-height: 1.6;">
                 If you believe this suspension was made in error or would like to appeal, please contact our support team.
@@ -251,9 +251,9 @@ export const banEmailTemplate = (name, reason) => `
           <tr>
             <td style="padding: 30px 40px; background-color: #f8f8f8; border-radius: 0 0 8px 8px; text-align: center;">
               <p style="margin: 0 0 10px 0; color: #999999; font-size: 12px;">
-                © ${new Date().getFullYear()} SkillSwap. All rights reserved.
+                © ${new Date().getFullYear()} skillup. All rights reserved.
               </p>
-              <p style="margin: 0; color: #999999; font-size: 12px;">support@skillswap.com</p>
+              <p style="margin: 0; color: #999999; font-size: 12px;">support@skillup.com</p>
             </td>
           </tr>
         </table>

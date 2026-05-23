@@ -4,7 +4,7 @@ import { notifyProfileUpdated } from '../services/notificationService.js';
 // @desc    Get user profile
 // @route   GET /api/users/:id
 // @access  Public
-export const getUserProfile = async (req, res) => {
+export const getUserProfile = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id)
       .select('-password -verificationToken -resetPasswordToken')
@@ -23,18 +23,14 @@ export const getUserProfile = async (req, res) => {
     });
   } catch (error) {
     console.error('Get user profile error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching user profile',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Update user profile
 // @route   PUT /api/users/profile
 // @access  Private
-export const updateProfile = async (req, res) => {
+export const updateProfile = async (req, res, next) => {
   try {
     const allowedUpdates = ['name', 'bio', 'avatar', 'country', 'timeZone', 'languages'];
     const updates = {};
@@ -62,18 +58,14 @@ export const updateProfile = async (req, res) => {
     });
   } catch (error) {
     console.error('Update profile error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error updating profile',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Follow a user
 // @route   POST /api/users/:id/follow
 // @access  Private
-export const followUser = async (req, res) => {
+export const followUser = async (req, res, next) => {
   try {
     const userIdToFollow = req.params.id;
     const currentUserId = req.user._id;
@@ -118,18 +110,14 @@ export const followUser = async (req, res) => {
     });
   } catch (error) {
     console.error('Follow user error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error following user',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Unfollow a user
 // @route   DELETE /api/users/:id/unfollow
 // @access  Private
-export const unfollowUser = async (req, res) => {
+export const unfollowUser = async (req, res, next) => {
   try {
     const userIdToUnfollow = req.params.id;
     const currentUserId = req.user._id;
@@ -171,18 +159,14 @@ export const unfollowUser = async (req, res) => {
     });
   } catch (error) {
     console.error('Unfollow user error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error unfollowing user',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Get user's followers
 // @route   GET /api/users/:id/followers
 // @access  Public
-export const getFollowers = async (req, res) => {
+export const getFollowers = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id)
       .populate('followers', 'name avatar bio skillsToTeach averageRating');
@@ -201,18 +185,14 @@ export const getFollowers = async (req, res) => {
     });
   } catch (error) {
     console.error('Get followers error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching followers',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Get user's following
 // @route   GET /api/users/:id/following
 // @access  Public
-export const getFollowing = async (req, res) => {
+export const getFollowing = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id)
       .populate('following', 'name avatar bio skillsToTeach averageRating');
@@ -231,18 +211,14 @@ export const getFollowing = async (req, res) => {
     });
   } catch (error) {
     console.error('Get following error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching following',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Search users
 // @route   GET /api/users/search
 // @access  Public
-export const searchUsers = async (req, res) => {
+export const searchUsers = async (req, res, next) => {
   try {
     const { q, skills, isTeacher } = req.query;
     let query = { isActive: true };
@@ -266,7 +242,7 @@ export const searchUsers = async (req, res) => {
     }
 
     const users = await User.find(query)
-      .select('name avatar bio skillsToTeach averageRating totalSessionsTaught isTeacher country isVerified')
+      .select('name avatar bio skillsToTeach averageRating totalSessionsTaught isTeacher country isVerified isOnline')
       .limit(20);
 
     res.status(200).json({
@@ -276,18 +252,14 @@ export const searchUsers = async (req, res) => {
     });
   } catch (error) {
     console.error('Search users error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error searching users',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Get teachers by skill
 // @route   GET /api/users/skill/:skillName
 // @access  Public
-export const getTeachersBySkill = async (req, res) => {
+export const getTeachersBySkill = async (req, res, next) => {
   try {
     const { skillName } = req.params;
     const Skill = (await import('../models/Skill.js')).default;
@@ -309,10 +281,6 @@ export const getTeachersBySkill = async (req, res) => {
     });
   } catch (error) {
     console.error('Get teachers by skill error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching teachers',
-      error: error.message
-    });
+    next(error);
   }
 };

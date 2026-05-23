@@ -35,3 +35,7 @@ backend/uploads/
 # Temp
 tmp/
 temp/
+
+# Windows reserved device names (cannot be committed on Windows)
+nul
+CUsersBoykaAppDataLocalTemplogin.json

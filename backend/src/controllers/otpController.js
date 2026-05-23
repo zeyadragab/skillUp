@@ -13,7 +13,7 @@ const generateToken = (id) => {
 // @desc    Request OTP for login
 // @route   POST /api/otp/request
 // @access  Public
-export const requestOTP = async (req, res) => {
+export const requestOTP = async (req, res, next) => {
   try {
     const { email } = req.body;
 
@@ -56,10 +56,7 @@ export const requestOTP = async (req, res) => {
     } catch (emailError) {
       console.error('❌ Failed to send OTP email:', emailError.message);
       console.error('❌ Full error:', emailError);
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to send OTP email. Please try again.'
-      });
+      return next(error);
     }
 
     res.status(200).json({
@@ -69,18 +66,14 @@ export const requestOTP = async (req, res) => {
     });
   } catch (error) {
     console.error('Request OTP error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error generating OTP',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Verify OTP and login
 // @route   POST /api/otp/verify
 // @access  Public
-export const verifyOTP = async (req, res) => {
+export const verifyOTP = async (req, res, next) => {
   try {
     const { email, otp } = req.body;
 

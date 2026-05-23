@@ -4,7 +4,7 @@ import User from '../models/User.js';
 // @desc    Get user's transaction history
 // @route   GET /api/transactions
 // @access  Private
-export const getTransactions = async (req, res) => {
+export const getTransactions = async (req, res, next) => {
   try {
     const userId = req.user._id;
     const { limit = 50, offset = 0, type, reason } = req.query;
@@ -57,18 +57,14 @@ export const getTransactions = async (req, res) => {
     });
   } catch (error) {
     console.error('Get transactions error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching transactions',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Get single transaction
 // @route   GET /api/transactions/:id
 // @access  Private
-export const getTransaction = async (req, res) => {
+export const getTransaction = async (req, res, next) => {
   try {
     const transaction = await Transaction.findById(req.params.id)
       .populate('session', 'title skill scheduledAt teacher learner')
@@ -95,18 +91,14 @@ export const getTransaction = async (req, res) => {
     });
   } catch (error) {
     console.error('Get transaction error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching transaction',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Get transaction statistics
 // @route   GET /api/transactions/stats
 // @access  Private
-export const getTransactionStats = async (req, res) => {
+export const getTransactionStats = async (req, res, next) => {
   try {
     const userId = req.user._id;
     const { period = '30' } = req.query; // Days to look back
@@ -161,18 +153,14 @@ export const getTransactionStats = async (req, res) => {
     });
   } catch (error) {
     console.error('Get transaction stats error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching transaction statistics',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Create a manual transaction (Admin only)
 // @route   POST /api/transactions
 // @access  Private (Admin)
-export const createTransaction = async (req, res) => {
+export const createTransaction = async (req, res, next) => {
   try {
     const { userId, type, amount, reason, description } = req.body;
 
@@ -218,10 +206,6 @@ export const createTransaction = async (req, res) => {
     });
   } catch (error) {
     console.error('Create transaction error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error creating transaction',
-      error: error.message
-    });
+    next(error);
   }
 };

@@ -1,6 +1,7 @@
 import React, { memo, useState, useRef } from "react";
 import { X, Upload, Camera, Loader, Check } from "lucide-react";
 import { useUser } from "../../context/UserContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { toast } from "react-toastify";
 
 const COUNTRIES = [
@@ -33,6 +34,7 @@ const COUNTRIES = [
 
 const EditProfileModal = memo(({ user, onClose }) => {
   const { updateUser } = useUser();
+  const { t } = useLanguage();
   const [saving, setSaving] = useState(false);
   const [uploadMethod, setUploadMethod] = useState("file"); // 'file' or 'url'
   const fileInputRef = useRef(null);
@@ -62,13 +64,13 @@ const EditProfileModal = memo(({ user, onClose }) => {
     if (file) {
       // Validate file type
       if (!file.type.startsWith("image/")) {
-        toast.error("Please select an image file");
+        toast.error(t("prof_image_error"));
         return;
       }
 
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        toast.error("Image size should be less than 5MB");
+        toast.error(t("prof_size_error"));
         return;
       }
 
@@ -123,12 +125,12 @@ const EditProfileModal = memo(({ user, onClose }) => {
 
     // Validation
     if (!formData.name.trim()) {
-      toast.error("Name is required");
+      toast.error(t("prof_name_required"));
       return;
     }
 
     if (formData.bio && formData.bio.length > 500) {
-      toast.error("Bio must be less than 500 characters");
+      toast.error(t("prof_bio_limit"));
       return;
     }
 
@@ -159,14 +161,14 @@ const EditProfileModal = memo(({ user, onClose }) => {
       const response = await updateUser(updates);
 
       if (response.success) {
-        toast.success("Profile updated successfully!");
+        toast.success(t("prof_updated_success"));
         onClose();
       } else {
-        toast.error(response.error || "Failed to update profile");
+        toast.error(response.error || t("prof_updated_error"));
       }
     } catch (error) {
       console.error("Error updating profile:", error);
-      toast.error(error.message || "Failed to update profile");
+      toast.error(error.message || t("prof_updated_error"));
     } finally {
       setSaving(false);
     }
@@ -177,7 +179,7 @@ const EditProfileModal = memo(({ user, onClose }) => {
       <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900">Edit Profile</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t("prof_edit_profile_title")}</h2>
           <button
             onClick={onClose}
             disabled={saving}
@@ -192,7 +194,7 @@ const EditProfileModal = memo(({ user, onClose }) => {
           {/* Profile Picture Section */}
           <div>
             <label className="block mb-4 text-sm font-semibold text-gray-700">
-              Profile Picture
+              {t("prof_profile_picture")}
             </label>
 
             {/* Avatar Preview */}
@@ -202,14 +204,14 @@ const EditProfileModal = memo(({ user, onClose }) => {
                   src={
                     avatarPreview ||
                     `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                      formData.name || "User"
+                      formData.name || "User",
                     )}&background=6366f1&color=fff&size=128`
                   }
                   alt="Preview"
                   className="object-cover w-24 h-24 border-4 border-gray-200 rounded-full"
                   onError={(e) => {
                     e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                      formData.name || "User"
+                      formData.name || "User",
                     )}&background=6366f1&color=fff&size=128`;
                   }}
                 />
@@ -237,7 +239,7 @@ const EditProfileModal = memo(({ user, onClose }) => {
                     }`}
                   >
                     <Upload className="inline-block w-4 h-4 mr-1" />
-                    Upload File
+                    {t("prof_upload_file")}
                   </button>
                   <button
                     type="button"
@@ -249,7 +251,7 @@ const EditProfileModal = memo(({ user, onClose }) => {
                     }`}
                   >
                     <Camera className="inline-block w-4 h-4 mr-1" />
-                    Use URL
+                    {t("prof_use_url")}
                   </button>
                 </div>
 
@@ -257,7 +259,7 @@ const EditProfileModal = memo(({ user, onClose }) => {
                   <>
                     <label className="inline-flex items-center px-4 py-2 space-x-2 font-medium text-indigo-600 transition-colors rounded-lg cursor-pointer bg-indigo-50 hover:bg-indigo-100">
                       <Upload className="w-4 h-4" />
-                      <span>Choose Photo</span>
+                      <span>{t("prof_choose_photo")}</span>
                       <input
                         ref={fileInputRef}
                         type="file"
@@ -283,7 +285,7 @@ const EditProfileModal = memo(({ user, onClose }) => {
                   />
                 )}
                 <p className="mt-2 text-xs text-gray-500">
-                  JPG, PNG or GIF (max 5MB)
+                  {t("prof_jpg_png_gif")}
                 </p>
               </div>
             </div>
@@ -292,7 +294,7 @@ const EditProfileModal = memo(({ user, onClose }) => {
           {/* Name */}
           <div>
             <label className="block mb-2 text-sm font-semibold text-gray-700">
-              Full Name <span className="text-red-500">*</span>
+              {t("prof_full_name")} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -301,14 +303,14 @@ const EditProfileModal = memo(({ user, onClose }) => {
               onChange={handleChange}
               required
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              placeholder="Your full name"
+              placeholder={t("prof_your_full_name")}
             />
           </div>
 
           {/* Bio */}
           <div>
             <label className="block mb-2 text-sm font-semibold text-gray-700">
-              Bio
+              {t("prof_bio")}
             </label>
             <textarea
               name="bio"
@@ -317,17 +319,17 @@ const EditProfileModal = memo(({ user, onClose }) => {
               rows={4}
               maxLength={500}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              placeholder="Tell others about yourself..."
+              placeholder={t("prof_tell_about")}
             />
             <p className="mt-2 text-xs text-gray-500">
-              {formData.bio.length}/500 characters
+              {formData.bio.length}/500 {t("prof_characters")}
             </p>
           </div>
 
           {/* Country */}
           <div>
             <label className="block mb-2 text-sm font-semibold text-gray-700">
-              Country
+              {t("prof_country")}
             </label>
             <select
               name="country"
@@ -335,7 +337,7 @@ const EditProfileModal = memo(({ user, onClose }) => {
               onChange={handleChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             >
-              <option value="">Select a country</option>
+              <option value="">{t("prof_select_country")}</option>
               {COUNTRIES.map((country) => (
                 <option key={country} value={country}>
                   {country}
@@ -347,7 +349,7 @@ const EditProfileModal = memo(({ user, onClose }) => {
           {/* Languages */}
           <div>
             <label className="block mb-2 text-sm font-semibold text-gray-700">
-              Languages
+              {t("prof_languages")}
             </label>
             <input
               type="text"
@@ -355,10 +357,10 @@ const EditProfileModal = memo(({ user, onClose }) => {
               value={formData.languages}
               onChange={handleChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              placeholder="e.g., English, Spanish, French"
+              placeholder={t("prof_languages_placeholder")}
             />
             <p className="mt-2 text-xs text-gray-500">
-              Separate languages with commas
+              {t("prof_separate_comma")}
             </p>
           </div>
 
@@ -370,7 +372,7 @@ const EditProfileModal = memo(({ user, onClose }) => {
               disabled={saving}
               className="flex-1 px-4 py-3 font-medium text-gray-700 transition-colors border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Cancel
+              {t("prof_cancel")}
             </button>
             <button
               type="submit"
@@ -380,10 +382,10 @@ const EditProfileModal = memo(({ user, onClose }) => {
               {saving ? (
                 <>
                   <Loader className="inline-block w-4 h-4 mr-2 animate-spin" />
-                  Saving...
+                  {t("prof_saving")}
                 </>
               ) : (
-                "Save Changes"
+                t("prof_save_changes")
               )}
             </button>
           </div>

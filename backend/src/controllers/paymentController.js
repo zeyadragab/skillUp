@@ -21,7 +21,7 @@ const TOKEN_PACKAGES = {
 // @desc    Create payment intent
 // @route   POST /api/payments/intent
 // @access  Private
-export const createPaymentIntent = async (req, res) => {
+export const createPaymentIntent = async (req, res, next) => {
   try {
     const { packageType } = req.body;
 
@@ -99,18 +99,14 @@ export const createPaymentIntent = async (req, res) => {
     });
   } catch (error) {
     console.error('Create payment intent error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error creating payment intent',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Confirm payment and add tokens
 // @route   POST /api/payments/confirm
 // @access  Private
-export const confirmPayment = async (req, res) => {
+export const confirmPayment = async (req, res, next) => {
   try {
     const { paymentIntentId } = req.body;
 
@@ -190,18 +186,14 @@ export const confirmPayment = async (req, res) => {
     });
   } catch (error) {
     console.error('Confirm payment error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error confirming payment',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Stripe webhook handler
 // @route   POST /api/payments/webhook
 // @access  Public (Stripe webhook)
-export const webhookHandler = async (req, res) => {
+export const webhookHandler = async (req, res, next) => {
   const sig = req.headers['stripe-signature'];
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -282,7 +274,7 @@ export const webhookHandler = async (req, res) => {
 // @desc    Get payment history
 // @route   GET /api/payments/history
 // @access  Private
-export const getPaymentHistory = async (req, res) => {
+export const getPaymentHistory = async (req, res, next) => {
   try {
     const payments = await Payment.find({ user: req.user._id })
       .sort({ createdAt: -1 })
@@ -305,18 +297,14 @@ export const getPaymentHistory = async (req, res) => {
     });
   } catch (error) {
     console.error('Get payment history error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching payment history',
-      error: error.message
-    });
+    next(error);
   }
 };
 
 // @desc    Get single payment by ID
 // @route   GET /api/payments/:paymentId
 // @access  Private
-export const getPaymentById = async (req, res) => {
+export const getPaymentById = async (req, res, next) => {
   try {
     const payment = await Payment.findById(req.params.paymentId).populate('user', 'name email');
 
@@ -341,11 +329,7 @@ export const getPaymentById = async (req, res) => {
     });
   } catch (error) {
     console.error('Get payment by ID error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching payment',
-      error: error.message
-    });
+    next(error);
   }
 };
 
@@ -407,7 +391,7 @@ export const getTokenPackages = (req, res) => {
 // @desc    Process alternative payment (PayPal, InstaPay, Fawry, Wallet)
 // @route   POST /api/payments/process
 // @access  Private
-export const processAlternativePayment = async (req, res) => {
+export const processAlternativePayment = async (req, res, next) => {
   try {
     const { packageType, paymentMethod, paymentDetails } = req.body;
 
@@ -491,10 +475,6 @@ export const processAlternativePayment = async (req, res) => {
     });
   } catch (error) {
     console.error('Alternative payment error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error processing payment',
-      error: error.message
-    });
+    next(error);
   }
 };
